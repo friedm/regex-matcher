@@ -77,6 +77,24 @@ pub fn parse_expressions(text: &str) -> Result<Vec<Expression>,&str> {
                     None => { return Err("no token before `+` metacharacter"); }
                 }
             },
+            '*' => {
+                match result.pop() {
+                    Some(value) => {
+                        match value {
+                            Expression::Token(token, multiplicity) => {
+                                result.push(Expression::Token(
+                                        token,
+                                        Multiplicity {
+                                            minimum: Some(0),
+                                            maximum: None
+                                        }));
+                            },
+                            _ => { return Err("invalid token before `*` metacharacter"); }
+                        }
+                    },
+                    None => { return Err("no token before `*` metacharacter"); }
+                }
+            },
             '[' => {
                 in_char_class = true;
                 chars_in_class.clear();
@@ -162,6 +180,17 @@ mod expression_spec {
 
         assert!(parse_expressions("+").is_err());
         assert!(parse_expressions("++").is_err());
+    }
+
+    #[test]
+    fn handles_zero_or_more_multiplicity() {
+        assert_eq!(vec![
+                   Expression::Token(Token::Literal('a'),
+                   Multiplicity {
+                       minimum: Some(0),
+                       maximum: None
+                   })
+        ], parse_expressions("a*").unwrap());
     }
 
     #[test]

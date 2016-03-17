@@ -145,4 +145,13 @@ mod regex_spec {
         assert!(Regex::from("[bc]?c").is_match("c"));
         assert!(!Regex::from("[bc]?c").is_match("b"));
     }
+
+    #[test]
+    fn matches_zero_or_more() {
+        let regex = Regex::from("ab*");
+        assert!(regex.is_match("abbbb"));
+        assert!(regex.is_match("ab"));
+        assert!(regex.is_match("a"));
+        assert!(!regex.is_match("bb"));
+    }
 }
