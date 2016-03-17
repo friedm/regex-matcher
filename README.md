@@ -1,20 +1,21 @@
 # Regex Matcher
 
-This is a basic regular expression matcher. Features intended to be supported
-are:
+This is a basic regular expression matcher. Features supported:  
 
 * character classes
 * character literals
-* the `.` metacharacter
 * `+`, `*`, and `?` multiplicity metacharacters
-* `^` and `$` positional metacharacters
+
+Not yet supported:
+
+* the `.` metacharacter
+* negated character classes with `^`
 * `\` to escape metacharacters
-
-Not intended for immediate support:
-
+* `^` and `$` positional metacharacters
+* specifying multiplicity using `{` and `}`
+* special escape sequences like `\b` and `\s`
 * regex OR `|`
 * sub-regexes grouped with `(` and `)`
-* specifying multiplicity using `{` and `}`
 * lookaround
 * captures and backreferences
 
