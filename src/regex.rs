@@ -23,7 +23,7 @@ impl Regex {
         let mut backtrack_stack = Vec::<(usize, usize, usize)>::new();
 
         while regex_i < self.expressions.len() {
-            let mut options = Self::valid_expression_offsets(&text[text_i..], &self.expressions[regex_i]);
+            let mut options = self.expressions[regex_i].valid_offsets(&text[text_i..]);
 
             backtrack_stack.extend(options.iter()
                                      .map(|&option| (regex_i, text_i, option))
@@ -47,68 +47,6 @@ impl Regex {
         }
 
         Some((match_start, text_i))
-    }
-
-    // returns a stack of valid offsets, given a string and a certain
-    // Regex "expression" (token and multiplicity)
-    // Multiplicity operator greediness is handled by ensuring that
-    // the offsets on the top of the stack are the largest valid offsets
-    fn valid_expression_offsets(text: &str, expr: &Expression) -> Vec<usize> {
-        let mut valid_offsets = Vec::<usize>::new();
-        let mut valid_chars = Vec::new();
-        let mut expr_is_dot = false;
-        let mut valid_multiplicity = Multiplicity::one();
-
-        match expr {
-            &Expression::Token(ref token, ref multiplicity) => {
-                valid_multiplicity = multiplicity.clone();
-                match token {
-                    &Token::Literal(ref value) => {
-                        valid_chars.push(value.clone());
-                    },
-                    &Token::Class(ref values) => {
-                        valid_chars.append(&mut values.clone());
-                    },
-                    &Token::Any => {
-                        expr_is_dot = true;
-                    }
-                }
-            },
-            _ => ()
-        }
-
-        if valid_multiplicity.minimum == 0 {
-            valid_offsets.push(0); //it is an option to do nothing with this expr
-        }
-
-        let mut offset = 0;
-
-        for c in text.chars() {
-            if !expr_is_dot && !valid_chars.contains(&c) {
-                break;
-            }
-
-            if expr_is_dot && c == '\n' { // the 'dot' metachar should not match newline
-                break;
-            }
-
-            offset += 1;
-
-            if offset < valid_multiplicity.minimum {
-                continue;
-            }
-
-            match valid_multiplicity.maximum {
-                Some(max) => {
-                    if offset > max { continue; }
-                },
-                None => ()
-            }
-
-            valid_offsets.push(offset);
-        }
-
-        valid_offsets
     }
 
     pub fn is_match(&self, text: &str) -> bool {
