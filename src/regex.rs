@@ -15,19 +15,19 @@ impl Regex {
     }
 
     pub fn first(&self, text: &str) -> Option<(usize, usize)> {
-        let mut regex_i = 0;
-        let mut text_i = 0;
-        let mut match_start = 0;
+        let mut regex_i = 0; // the current position in the list of regex "expressions"
+        let mut text_i = 0; // the current position in the text
+        let mut match_start = 0; // the start position of the current match
 
         // a stack of valid offsets, in the order we encountered them
         let mut backtrack_stack = Vec::<(usize, usize, usize)>::new();
 
         while regex_i < self.expressions.len() {
-            let mut options = Self::ways_to_grab_text(&text[text_i..], &self.expressions[regex_i]);
+            let mut options = Self::valid_expression_offsets(&text[text_i..], &self.expressions[regex_i]);
 
-            for option in options {
-                backtrack_stack.push((regex_i, text_i, option));
-            }
+            backtrack_stack.extend(options.iter()
+                                     .map(|&option| (regex_i, text_i, option))
+                                     .collect::<Vec<_>>());
 
             if backtrack_stack.len() == 0 {
                 text_i += 1;
@@ -49,7 +49,11 @@ impl Regex {
         Some((match_start, text_i))
     }
 
-    fn ways_to_grab_text(text: &str, expr: &Expression) -> Vec<usize> {
+    // returns a stack of valid offsets, given a string and a certain
+    // Regex "expression" (token and multiplicity)
+    // Multiplicity operator greediness is handled by ensuring that
+    // the offsets on the top of the stack are the largest valid offsets
+    fn valid_expression_offsets(text: &str, expr: &Expression) -> Vec<usize> {
         let mut valid_offsets = Vec::<usize>::new();
         let mut valid_chars = Vec::new();
         let mut expr_is_dot = false;
