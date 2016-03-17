@@ -93,6 +93,10 @@ pub fn parse_expressions(text: &str) -> Result<Vec<Expression>,&str> {
                     }
                 }
             },
+            '.' => {
+                result.push(Expression::Token(Token::Any,
+                                              Multiplicity::one()));
+            },
             '[' => {
                 in_char_class = true;
                 chars_in_class.clear();
@@ -203,6 +207,14 @@ mod expression_spec {
         assert!(parse_expressions("]").is_err());
         assert!(parse_expressions("[").is_err());
         assert!(parse_expressions("[]").is_ok());
+    }
+
+    #[test]
+    fn handles_dot() {
+        assert_eq!(vec![
+                   Expression::Token(Token::Any,
+                                     Multiplicity::one())
+        ], parse_expressions(".").unwrap());
     }
 }
 

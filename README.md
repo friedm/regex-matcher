@@ -7,10 +7,10 @@ A basic regular expression matcher, from scratch.
 * character classes
 * character literals
 * `+`, `*`, and `?` multiplicity metacharacters
+* the `.` metacharacter
 
 ### Features not yet Supported
 
-* the `.` metacharacter
 * negated character classes with `^`
 * `\` to escape metacharacters
 * `^` and `$` positional metacharacters

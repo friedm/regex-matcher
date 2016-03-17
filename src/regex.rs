@@ -52,6 +52,7 @@ impl Regex {
     fn ways_to_grab_text(text: &str, expr: &Expression) -> Vec<usize> {
         let mut valid_offsets = Vec::<usize>::new();
         let mut valid_chars = Vec::new();
+        let mut expr_is_dot = false;
         let mut valid_multiplicity = Multiplicity::one();
 
         match expr {
@@ -63,8 +64,10 @@ impl Regex {
                     },
                     &Token::Class(ref values) => {
                         valid_chars.append(&mut values.clone());
+                    },
+                    &Token::Any => {
+                        expr_is_dot = true;
                     }
-                    _ => ()
                 }
             },
             _ => ()
@@ -77,7 +80,11 @@ impl Regex {
         let mut offset = 0;
 
         for c in text.chars() {
-            if !valid_chars.contains(&c) {
+            if !expr_is_dot && !valid_chars.contains(&c) {
+                break;
+            }
+
+            if expr_is_dot && c == '\n' { // the 'dot' metachar should not match newline
                 break;
             }
 
@@ -193,6 +200,28 @@ mod match_spec {
     #[test]
     fn zero_or_more_metachar_is_greedy() {
         assert_eq!(Some((0,2)), Regex::from("a*").unwrap().first("aa"));
+    }
+
+    #[test]
+    fn dot_matches_any_one_character() {
+        assert_eq!(Some((0,1)), Regex::from(".").unwrap().first("abc"));
+    }
+
+    #[test]
+    fn dot_does_not_match_newline() {
+        assert_eq!(None, Regex::from(".").unwrap().first("\n"));
+        let regex = Regex::from(".*").unwrap();
+        assert_eq!(Some((0,0)), regex.first("\n\n"));
+
+        assert_eq!(None, Regex::from(".+").unwrap().first("\n\n"));
+    }
+
+    #[test]
+    fn dot_matches_with_multiplicity() {
+        assert_eq!(Some((0,10)), 
+                   Regex::from(".*").unwrap().first("some stuff\nmore stuff"));
+        assert_eq!(Some((3, 8)),
+                   Regex::from(".+").unwrap().first("\n\n\nstuff"));
     }
 }
 
