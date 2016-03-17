@@ -4,19 +4,17 @@ use ::token::{Expression, Token, Multiplicity};
 
 #[derive(PartialEq,Debug)]
 pub struct Regex {
-    pub pattern: String
+    pub expressions: Vec<Expression>
 }
 
 impl Regex {
-    pub fn from(pattern: &str) -> Regex {
-        Regex {
-            pattern: pattern.to_owned()
-        }
+    pub fn from(pattern: &str) -> Result<Regex, &str> {
+        parse_expressions(pattern).map(|exprs| Regex {
+            expressions: exprs
+        })
     }
 
     pub fn first(&self, text: &str) -> Option<(usize, usize)> {
-        let expressions = parse_expressions(&self.pattern).unwrap();
-
         let mut regex_i = 0;
         let mut text_i = 0;
         let mut match_start = 0;
@@ -24,8 +22,8 @@ impl Regex {
         // a stack of valid offsets, in the order we encountered them
         let mut backtrack_stack = Vec::<(usize, usize, usize)>::new();
 
-        while regex_i < expressions.len() {
-            let mut options = Self::ways_to_grab_text(&text[text_i..], &expressions[regex_i]);
+        while regex_i < self.expressions.len() {
+            let mut options = Self::ways_to_grab_text(&text[text_i..], &self.expressions[regex_i]);
 
             for option in options {
                 backtrack_stack.push((regex_i, text_i, option));
@@ -118,41 +116,43 @@ mod match_spec {
 
     #[test]
     fn matches_simple_examples() {
-        assert!(Regex::from("ab?c").is_match("zac"));
-        assert!(Regex::from("ab?c").is_match("abbbc"));
-        assert!(Regex::from("a?").is_match(""));
-        assert!(Regex::from("a+").is_match("a"));
-        assert!(Regex::from("ab+").is_match("abbbb"));
+        assert!(Regex::from("ab?c").unwrap().is_match("zac"));
+        assert!(Regex::from("ab?c").unwrap().is_match("abbbc"));
+        assert!(Regex::from("a?").unwrap().is_match(""));
+        assert!(Regex::from("a+").unwrap().is_match("a"));
+        assert!(Regex::from("ab+").unwrap().is_match("abbbb"));
     }
 
     #[test]
     fn does_not_match() {
-        assert!(!Regex::from("ab?c").is_match("z"));
-        assert!(!Regex::from("a+").is_match(""));
-        assert!(!Regex::from("ab+").is_match("bbbb"));
+        assert!(!Regex::from("ab?c").unwrap().is_match("z"));
+        assert!(!Regex::from("a+").unwrap().is_match(""));
+        assert!(!Regex::from("ab+").unwrap().is_match("bbbb"));
     }
 
     #[test]
     fn matches_character_class() {
-        assert!(Regex::from("[abc]").is_match("a"));
-        assert!(Regex::from("[abc]").is_match("b"));
-        assert!(Regex::from("[abc]").is_match("c"));
-        assert!(!Regex::from("[abc]").is_match("["));
-        assert!(!Regex::from("[abc]").is_match("]"));
-        assert!(!Regex::from("[abc]").is_match("z"));
+        let regex = Regex::from("[abc]").unwrap();
+        assert!(regex.is_match("a"));
+        assert!(regex.is_match("b"));
+        assert!(regex.is_match("c"));
+        assert!(!regex.is_match("["));
+        assert!(!regex.is_match("]"));
+        assert!(!regex.is_match("z"));
     }
 
     #[test]
     fn backtracks_to_find_match() {
-        assert!(Regex::from("[bc]?c").is_match("cb"));
-        assert!(Regex::from("[bc]?c").is_match("cc"));
-        assert!(Regex::from("[bc]?c").is_match("c"));
-        assert!(!Regex::from("[bc]?c").is_match("b"));
+        let regex = Regex::from("[bc]?c").unwrap();
+        assert!(regex.is_match("cb"));
+        assert!(regex.is_match("cc"));
+        assert!(regex.is_match("c"));
+        assert!(!regex.is_match("b"));
     }
 
     #[test]
     fn finds_correct_match() {
-        let regex = Regex::from("[bc]?c");
+        let regex = Regex::from("[bc]?c").unwrap();
         assert_eq!(Some((0,1)), 
                    regex.first("cb"));
         assert_eq!(Some((0,2)),
@@ -163,7 +163,7 @@ mod match_spec {
 
     #[test]
     fn matches_zero_or_more() {
-        let regex = Regex::from("ab*");
+        let regex = Regex::from("ab*").unwrap();
         assert!(regex.is_match("abbbb"));
         assert!(regex.is_match("ab"));
         assert!(regex.is_match("a"));
@@ -172,32 +172,32 @@ mod match_spec {
 
     #[test]
     fn finds_correct_match_position() {
-        let regex = Regex::from("a");
+        let regex = Regex::from("a").unwrap();
         assert_eq!(Some((0,1)), regex.first("a"));
         assert_eq!(Some((3,4)), regex.first("bbba"));
-        assert_eq!(Some((0,4)), Regex::from("aaaa").first("aaaa"));
+        assert_eq!(Some((0,4)), Regex::from("aaaa").unwrap().first("aaaa"));
     }
 
     #[test]
     fn finds_first_occurrence() {
-        assert_eq!(Some((1,2)), Regex::from("z").first("azzzzzzz"));
-        assert_eq!(Some((2,5)), Regex::from("abc").first("zxabcabc"));
-        assert_eq!(Some((0,5)), Regex::from("[zx]+abc").first("zxabczxabc"));
+        assert_eq!(Some((1,2)), Regex::from("z").unwrap().first("azzzzzzz"));
+        assert_eq!(Some((2,5)), Regex::from("abc").unwrap().first("zxabcabc"));
+        assert_eq!(Some((0,5)), Regex::from("[zx]+abc").unwrap().first("zxabczxabc"));
     }
 
     #[test]
     fn optional_metachar_is_greedy() {
-        assert_eq!(Some((0,1)), Regex::from("a?").first("aa"));
+        assert_eq!(Some((0,1)), Regex::from("a?").unwrap().first("aa"));
     }
 
     #[test]
     fn one_or_more_metachar_is_greedy() {
-        assert_eq!(Some((0,2)), Regex::from("a+").first("aa"));
+        assert_eq!(Some((0,2)), Regex::from("a+").unwrap().first("aa"));
     }
 
     #[test]
     fn zero_or_more_metachar_is_greedy() {
-        assert_eq!(Some((0,2)), Regex::from("a*").first("aa"));
+        assert_eq!(Some((0,2)), Regex::from("a*").unwrap().first("aa"));
     }
 }
 
