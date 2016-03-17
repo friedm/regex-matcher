@@ -11,10 +11,13 @@ pub enum Token {
     Any
 }
 
+// Represents an upper and lower bound on the multiplicity of a regex token
+// Eg. `(Some(0), Some(1))` corresponds to `?` and `(Some(0), None)` corresponds
+// to `*`
 #[derive(PartialEq, Debug)]
 pub struct Multiplicity {
-    minimum: usize,
-    maximum: usize
+    minimum: Option<usize>,
+    maximum: Option<usize>
 }
 
 // A regex "expression" represents a token with multiplicity, or a position
@@ -39,22 +42,40 @@ pub fn parse_expressions(text: &str) -> Result<Vec<Expression>,&str> {
                                 result.push(Expression::Token(
                                         token,
                                         Multiplicity {
-                                            minimum: 0,
-                                            maximum: 1
+                                            minimum: Some(0),
+                                            maximum: Some(1)
                                         }));
                             },
-                            _ => { return Err("invalid token before the `?` metacharacter"); }
-                        }},
+                            _ => { return Err("invalid token before `?` metacharacter"); }
+                        }
+                    },
                     None => { return Err("no token before `?` metacharacter"); }
-
+                }
+            },
+            '+' => {
+                match result.pop() {
+                    Some(value) => {
+                        match value {
+                            Expression::Token(token, multiplicity) => {
+                                result.push(Expression::Token(
+                                        token,
+                                        Multiplicity {
+                                            minimum: Some(1),
+                                            maximum: None
+                                        }));
+                            },
+                            _ => { return Err("invalid token before `+` metacharacter"); }
+                        }
+                    },
+                    None => { return Err("no token before `+` metacharacter"); }
                 }
             },
             c => { // Not a meta-character, treat as a literal
                 result.push(Expression::Token(
                     Token::Literal(c),
                     Multiplicity {
-                        minimum: 1,
-                        maximum: 1
+                        minimum: Some(1),
+                        maximum: Some(1)
                     }
                 ));
             }
@@ -75,8 +96,8 @@ mod expression_spec {
                    Expression::Token(
                        Token::Literal('a'),
                        Multiplicity {
-                           minimum: 1,
-                           maximum: 1
+                           minimum: Some(1),
+                           maximum: Some(1)
                        }
                    )
         ], parse_expressions("a").unwrap())
@@ -92,13 +113,27 @@ mod expression_spec {
         assert_eq!(vec![
                    Expression::Token(Token::Literal('a'),
                    Multiplicity {
-                       minimum: 0,
-                       maximum: 1
+                       minimum: Some(0),
+                       maximum: Some(1)
                    })
         ], parse_expressions("a?").unwrap());
 
         assert!(parse_expressions("?").is_err());
         assert!(parse_expressions("??").is_err());
+    }
+
+    #[test]
+    fn handles_one_or_more_multiplicity() {
+        assert_eq!(vec![
+                   Expression::Token(Token::Literal('a'),
+                   Multiplicity {
+                       minimum: Some(1),
+                       maximum: None
+                   })
+        ], parse_expressions("a+").unwrap());
+
+        assert!(parse_expressions("+").is_err());
+        assert!(parse_expressions("++").is_err());
     }
 }
 
