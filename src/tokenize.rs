@@ -1,6 +1,6 @@
 use ::expression::{Token, Expression, Multiplicity};
 
-pub fn parse_expressions(text: &str) -> Result<Vec<Expression>,&str> {
+pub fn tokenize_regex(text: &str) -> Result<Vec<Expression>,&str> {
     let mut result = Vec::<Expression>::new();
     let mut in_char_class = false;
     let mut chars_in_class = Vec::new();
@@ -96,7 +96,7 @@ fn update_last_with_multiplicity<'a>(expressions: &mut Vec<Expression>, multipli
 
 #[cfg(test)]
 mod expression_spec {
-    use super::parse_expressions;
+    use super::tokenize_regex;
     use ::expression::{Token, Multiplicity, Expression};
 
     #[test]
@@ -106,12 +106,12 @@ mod expression_spec {
                        Token::Literal('a'),
                        Multiplicity::one()
                    )
-        ], parse_expressions("a").unwrap())
+        ], tokenize_regex("a").unwrap())
     }
 
     #[test]
     fn parses_many_literals() {
-        assert_eq!(6, parse_expressions("abcxyz").unwrap().len());
+        assert_eq!(6, tokenize_regex("abcxyz").unwrap().len());
     }
 
     #[test]
@@ -119,10 +119,10 @@ mod expression_spec {
         assert_eq!(vec![
                    Expression::Token(Token::Literal('a'),
                    Multiplicity::optional())
-        ], parse_expressions("a?").unwrap());
+        ], tokenize_regex("a?").unwrap());
 
-        assert!(parse_expressions("?").is_err());
-        assert!(parse_expressions("??").is_err());
+        assert!(tokenize_regex("?").is_err());
+        assert!(tokenize_regex("??").is_err());
     }
 
     #[test]
@@ -130,10 +130,10 @@ mod expression_spec {
         assert_eq!(vec![
                    Expression::Token(Token::Literal('a'),
                    Multiplicity::one_or_more())
-        ], parse_expressions("a+").unwrap());
+        ], tokenize_regex("a+").unwrap());
 
-        assert!(parse_expressions("+").is_err());
-        assert!(parse_expressions("++").is_err());
+        assert!(tokenize_regex("+").is_err());
+        assert!(tokenize_regex("++").is_err());
     }
 
     #[test]
@@ -141,7 +141,7 @@ mod expression_spec {
         assert_eq!(vec![
                    Expression::Token(Token::Literal('a'),
                    Multiplicity::zero_or_more())
-        ], parse_expressions("a*").unwrap());
+        ], tokenize_regex("a*").unwrap());
     }
 
     #[test]
@@ -149,11 +149,11 @@ mod expression_spec {
         assert_eq!(vec![
                    Expression::Token(Token::Class(vec!['x', 'y', 'z']),
                                      Multiplicity::one())
-        ], parse_expressions("[xyz]").unwrap());
+        ], tokenize_regex("[xyz]").unwrap());
 
-        assert!(parse_expressions("]").is_err());
-        assert!(parse_expressions("[").is_err());
-        assert!(parse_expressions("[]").is_ok());
+        assert!(tokenize_regex("]").is_err());
+        assert!(tokenize_regex("[").is_err());
+        assert!(tokenize_regex("[]").is_ok());
     }
 
     #[test]
@@ -161,7 +161,7 @@ mod expression_spec {
         assert_eq!(vec![
                    Expression::Token(Token::Any,
                                      Multiplicity::one())
-        ], parse_expressions(".").unwrap());
+        ], tokenize_regex(".").unwrap());
     }
 }
 

@@ -1,5 +1,5 @@
 use std::str::FromStr;
-use ::tokenize::parse_expressions;
+use ::tokenize::tokenize_regex;
 use ::expression::{Expression, Token, Multiplicity};
 
 #[derive(PartialEq,Debug)]
@@ -9,7 +9,7 @@ pub struct Regex {
 
 impl Regex {
     pub fn from(pattern: &str) -> Result<Regex, &str> {
-        parse_expressions(pattern).map(|exprs| Regex {
+        tokenize_regex(pattern).map(|exprs| Regex {
             expressions: exprs
         })
     }
