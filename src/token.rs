@@ -16,8 +16,8 @@ pub enum Token {
 // to `*`
 #[derive(PartialEq, Debug)]
 pub struct Multiplicity {
-    minimum: Option<usize>,
-    maximum: Option<usize>
+    pub minimum: Option<usize>,
+    pub maximum: Option<usize>
 }
 
 // A regex "expression" represents a token with multiplicity, or a position
