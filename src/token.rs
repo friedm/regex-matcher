@@ -26,11 +26,29 @@ pub enum Expression {
     Token(Token, Multiplicity)
 }
 
-pub fn parse_expressions(text: &str) -> Vec<Expression> {
-    let mut result = Vec::new();
+pub fn parse_expressions(text: &str) -> Result<Vec<Expression>,&str> {
+    let mut result = Vec::<Expression>::new();
 
     for c in text.chars() {
         match c {
+            '?' => {
+                match result.pop() {
+                    Some(value) => {
+                        match value {
+                            Expression::Token(token, multiplicity) => {
+                                result.push(Expression::Token(
+                                        token,
+                                        Multiplicity {
+                                            minimum: 0,
+                                            maximum: 1
+                                        }));
+                            },
+                            _ => { return Err("invalid token before the `?` metacharacter"); }
+                        }},
+                    None => { return Err("no token before `?` metacharacter"); }
+
+                }
+            },
             c => { // Not a meta-character, treat as a literal
                 result.push(Expression::Token(
                     Token::Literal(c),
@@ -44,7 +62,7 @@ pub fn parse_expressions(text: &str) -> Vec<Expression> {
         }
     }
 
-    result
+    Ok(result)
 }
 
 #[cfg(test)]
@@ -61,12 +79,26 @@ mod expression_spec {
                            maximum: 1
                        }
                    )
-        ], parse_expressions("a"))
+        ], parse_expressions("a").unwrap())
     }
 
     #[test]
     fn parses_many_literals() {
-        assert_eq!(6, parse_expressions("abcxyz").len());
+        assert_eq!(6, parse_expressions("abcxyz").unwrap().len());
+    }
+
+    #[test]
+    fn handles_optional_multiplicity() {
+        assert_eq!(vec![
+                   Expression::Token(Token::Literal('a'),
+                   Multiplicity {
+                       minimum: 0,
+                       maximum: 1
+                   })
+        ], parse_expressions("a?").unwrap());
+
+        assert!(parse_expressions("?").is_err());
+        assert!(parse_expressions("??").is_err());
     }
 }
 
