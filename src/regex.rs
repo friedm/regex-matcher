@@ -106,10 +106,18 @@ mod regex_spec {
     fn matches_simple_examples() {
         assert!(Regex::from("ab?c").is_match("zac"));
         assert!(Regex::from("ab?c").is_match("abbbc"));
+        assert!(Regex::from("a?").is_match(""));
+        assert!(Regex::from("a+").is_match("a"));
     }
 
     #[test]
     fn does_not_match() {
         assert!(!Regex::from("ab?c").is_match("z"));
+        assert!(!Regex::from("a+").is_match(""));
+    }
+
+    #[test]
+    fn backtracks_to_find_match() {
+        assert!(Regex::from("[bc]?c").is_match("cb"));
     }
 }
