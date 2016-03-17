@@ -1,27 +1,11 @@
-#[derive(PartialEq,Debug)]
-struct Regex {
-    pattern: String
-}
+pub mod regex;
+mod token;
 
-impl Regex {
-    pub fn from(pattern: &str) -> Regex {
-        Regex {
-            pattern: pattern.to_owned()
-        }
-    }
-
-    pub fn is_match(&self, text: &str) -> bool {
-        true
-    }
-
-    pub fn find_first(&self, text: &str) -> (usize, usize) {
-        (1, 2)
-    }
-}
+pub use regex::Regex;
 
 #[cfg(test)]
 mod regex_spec {
-    use super::{Regex};
+    use ::{Regex};
 
     #[test]
     fn creates_new() {
@@ -37,7 +21,12 @@ mod regex_spec {
     }
 
     #[test]
-    fn find() {
-        assert_eq!((1, 2), Regex::from(r"a").find_first("baaa"))
+    fn finds_first() {
+        assert_eq!(Some((1, 2)), Regex::from(r"a").first("baaa"))
+    }
+
+    #[test]
+    fn first_is_none() {
+        assert_eq!(None, Regex::from(r"z").first("baaa"))
     }
 }
