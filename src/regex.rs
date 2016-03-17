@@ -179,6 +179,13 @@ mod match_spec {
     }
 
     #[test]
+    fn finds_first_occurrence() {
+        assert_eq!(Some((1,2)), Regex::from("z").first("azzzzzzz"));
+        assert_eq!(Some((2,5)), Regex::from("abc").first("zxabcabc"));
+        assert_eq!(Some((0,5)), Regex::from("[zx]+abc").first("zxabczxabc"));
+    }
+
+    #[test]
     fn optional_metachar_is_greedy() {
         assert_eq!(Some((0,1)), Regex::from("a?").first("aa"));
     }
