@@ -67,48 +67,30 @@ pub fn parse_expressions(text: &str) -> Result<Vec<Expression>,&str> {
 
         match c {
             '?' => {
-                match result.pop() {
-                    Some(value) => {
-                        match value {
-                            Expression::Token(token, multiplicity) => {
-                                result.push(Expression::Token(
-                                        token,
-                                        Multiplicity::optional()));
-                            },
-                            _ => { return Err("invalid token before `?` metacharacter"); }
-                        }
-                    },
-                    None => { return Err("no token before `?` metacharacter"); }
+                match update_last_with_multiplicity(&mut result, Multiplicity::optional()) {
+                    Ok(_) => (),
+                    Err(e) => {
+                        e.to_owned().push_str(" `?`");
+                        return Err(e);
+                    }
                 }
             },
             '+' => {
-                match result.pop() {
-                    Some(value) => {
-                        match value {
-                            Expression::Token(token, multiplicity) => {
-                                result.push(Expression::Token(
-                                        token,
-                                        Multiplicity::one_or_more()));
-                            },
-                            _ => { return Err("invalid token before `+` metacharacter"); }
-                        }
-                    },
-                    None => { return Err("no token before `+` metacharacter"); }
+                match update_last_with_multiplicity(&mut result, Multiplicity::one_or_more()) {
+                    Ok(_) => (),
+                    Err(e) => {
+                        e.to_owned().push_str(" `+`");
+                        return Err(e);
+                    }
                 }
             },
             '*' => {
-                match result.pop() {
-                    Some(value) => {
-                        match value {
-                            Expression::Token(token, multiplicity) => {
-                                result.push(Expression::Token(
-                                        token,
-                                        Multiplicity::zero_or_more()));
-                            },
-                            _ => { return Err("invalid token before `*` metacharacter"); }
-                        }
-                    },
-                    None => { return Err("no token before `*` metacharacter"); }
+                match update_last_with_multiplicity(&mut result, Multiplicity::zero_or_more()) {
+                    Ok(_) => (),
+                    Err(e) => {
+                        e.to_owned().push_str(" `*`");
+                        return Err(e);
+                    }
                 }
             },
             '[' => {
@@ -140,6 +122,26 @@ pub fn parse_expressions(text: &str) -> Result<Vec<Expression>,&str> {
     }
 
     Ok(result)
+}
+
+fn update_last_with_multiplicity<'a>(expressions: &mut Vec<Expression>, multiplicity: Multiplicity) 
+    -> Result<(), &'a str> {
+
+    match expressions.pop() {
+        Some(value) => {
+            match value {
+                Expression::Token(token, _) => {
+                    expressions.push(Expression::Token(
+                            token,
+                            multiplicity));
+                },
+                _ => { return Err("invalid token before metacharacter"); }
+            }
+        },
+        None => { return Err("no token before metacharacter"); }
+    }
+
+    Ok(())
 }
 
 #[cfg(test)]
