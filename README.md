@@ -1,12 +1,14 @@
 # Regex Matcher
 
-This is a basic regular expression matcher. Features supported:  
+A basic regular expression matcher, from scratch. 
+
+### Features Supported
 
 * character classes
 * character literals
 * `+`, `*`, and `?` multiplicity metacharacters
 
-Not yet supported:
+### Features not yet Supported
 
 * the `.` metacharacter
 * negated character classes with `^`

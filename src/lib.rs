@@ -27,12 +27,12 @@ mod lib_spec {
 
     #[test]
     fn finds_first() {
-        assert_eq!(Some((1, 2)), Regex::from(r"a").unwrap().first("baaa"));
+        assert_eq!(Some((1, 2)), Regex::from("a").unwrap().first("baaa"));
     }
 
     #[test]
     fn first_is_none() {
-        assert_eq!(None, Regex::from(r"z").unwrap().first("baaa"));
+        assert_eq!(None, Regex::from("z").unwrap().first("baaa"));
     }
 
     #[test]

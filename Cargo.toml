@@ -1,5 +1,5 @@
 [package]
-name = "regexmatcher"
+name = "regex-matcher"
 version = "0.1.0"
 authors = ["Matt Friedman <matt@friedm.com>"]
 
