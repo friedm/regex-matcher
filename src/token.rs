@@ -82,6 +82,10 @@ pub fn parse_expressions(text: &str) -> Result<Vec<Expression>,&str> {
                 chars_in_class.clear();
             },
             ']' => {
+                if in_char_class == false {
+                    return Err("missing char class start `[`");
+                }
+
                 in_char_class = false;
                 result.push(Expression::Token(
                         Token::Class(chars_in_class.clone()),
@@ -101,6 +105,10 @@ pub fn parse_expressions(text: &str) -> Result<Vec<Expression>,&str> {
             }
             
         }
+    }
+
+    if in_char_class == true {
+        return Err("incomplete char class, expected `]`");
     }
 
     Ok(result)
@@ -165,6 +173,10 @@ mod expression_spec {
                                          maximum: Some(1)
                                      })
         ], parse_expressions("[xyz]").unwrap());
+
+        assert!(parse_expressions("]").is_err());
+        assert!(parse_expressions("[").is_err());
+        assert!(parse_expressions("[]").is_ok());
     }
 }
 
