@@ -16,7 +16,7 @@ pub enum Token {
 // to `*`
 #[derive(PartialEq, Debug, Clone)]
 pub struct Multiplicity {
-    pub minimum: Option<usize>,
+    pub minimum: usize,
     pub maximum: Option<usize>
 }
 
@@ -49,7 +49,7 @@ pub fn parse_expressions(text: &str) -> Result<Vec<Expression>,&str> {
                                 result.push(Expression::Token(
                                         token,
                                         Multiplicity {
-                                            minimum: Some(0),
+                                            minimum: 0,
                                             maximum: Some(1)
                                         }));
                             },
@@ -67,7 +67,7 @@ pub fn parse_expressions(text: &str) -> Result<Vec<Expression>,&str> {
                                 result.push(Expression::Token(
                                         token,
                                         Multiplicity {
-                                            minimum: Some(1),
+                                            minimum: 1,
                                             maximum: None
                                         }));
                             },
@@ -85,7 +85,7 @@ pub fn parse_expressions(text: &str) -> Result<Vec<Expression>,&str> {
                                 result.push(Expression::Token(
                                         token,
                                         Multiplicity {
-                                            minimum: Some(0),
+                                            minimum: 0,
                                             maximum: None
                                         }));
                             },
@@ -108,7 +108,7 @@ pub fn parse_expressions(text: &str) -> Result<Vec<Expression>,&str> {
                 result.push(Expression::Token(
                         Token::Class(chars_in_class.clone()),
                         Multiplicity {
-                            minimum: Some(1),
+                            minimum: 1,
                             maximum: Some(1)
                         }));
             },
@@ -116,7 +116,7 @@ pub fn parse_expressions(text: &str) -> Result<Vec<Expression>,&str> {
                 result.push(Expression::Token(
                     Token::Literal(c),
                     Multiplicity {
-                        minimum: Some(1),
+                        minimum: 1,
                         maximum: Some(1)
                     }
                 ));
@@ -142,7 +142,7 @@ mod expression_spec {
                    Expression::Token(
                        Token::Literal('a'),
                        Multiplicity {
-                           minimum: Some(1),
+                           minimum: 1,
                            maximum: Some(1)
                        }
                    )
@@ -159,7 +159,7 @@ mod expression_spec {
         assert_eq!(vec![
                    Expression::Token(Token::Literal('a'),
                    Multiplicity {
-                       minimum: Some(0),
+                       minimum: 0,
                        maximum: Some(1)
                    })
         ], parse_expressions("a?").unwrap());
@@ -173,7 +173,7 @@ mod expression_spec {
         assert_eq!(vec![
                    Expression::Token(Token::Literal('a'),
                    Multiplicity {
-                       minimum: Some(1),
+                       minimum: 1,
                        maximum: None
                    })
         ], parse_expressions("a+").unwrap());
@@ -187,7 +187,7 @@ mod expression_spec {
         assert_eq!(vec![
                    Expression::Token(Token::Literal('a'),
                    Multiplicity {
-                       minimum: Some(0),
+                       minimum: 0,
                        maximum: None
                    })
         ], parse_expressions("a*").unwrap());
@@ -198,7 +198,7 @@ mod expression_spec {
         assert_eq!(vec![
                    Expression::Token(Token::Class(vec!['x', 'y', 'z']),
                                      Multiplicity {
-                                         minimum: Some(1),
+                                         minimum: 1,
                                          maximum: Some(1)
                                      })
         ], parse_expressions("[xyz]").unwrap());

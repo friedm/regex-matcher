@@ -53,7 +53,7 @@ impl Regex {
         let mut valid_offsets = Vec::<usize>::new();
         let mut valid_chars = Vec::new();
         let mut valid_multiplicity = Multiplicity {
-            minimum: Some(1), maximum: Some(1)
+            minimum: 1, maximum: Some(1)
         };
 
         match expr {
@@ -72,7 +72,7 @@ impl Regex {
             _ => ()
         }
 
-        if valid_multiplicity.minimum == None || valid_multiplicity.minimum == Some(0) {
+        if valid_multiplicity.minimum == 0 {
             valid_offsets.push(0); //it is an option to do nothing with this expr
         }
 
@@ -85,11 +85,8 @@ impl Regex {
 
             offset += 1;
 
-            match valid_multiplicity.minimum {
-                Some(min) => {
-                    if offset < min { continue; }
-                },
-                None => ()
+            if offset < valid_multiplicity.minimum {
+                continue;
             }
 
             match valid_multiplicity.maximum {
