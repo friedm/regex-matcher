@@ -31,8 +31,15 @@ pub enum Expression {
 
 pub fn parse_expressions(text: &str) -> Result<Vec<Expression>,&str> {
     let mut result = Vec::<Expression>::new();
+    let mut in_char_class = false;
+    let mut chars_in_class = Vec::new();
 
     for c in text.chars() {
+        if in_char_class && c != ']' {
+            chars_in_class.push(c);
+            continue
+        }
+
         match c {
             '?' => {
                 match result.pop() {
@@ -69,6 +76,19 @@ pub fn parse_expressions(text: &str) -> Result<Vec<Expression>,&str> {
                     },
                     None => { return Err("no token before `+` metacharacter"); }
                 }
+            },
+            '[' => {
+                in_char_class = true;
+                chars_in_class.clear();
+            },
+            ']' => {
+                in_char_class = false;
+                result.push(Expression::Token(
+                        Token::Class(chars_in_class.clone()),
+                        Multiplicity {
+                            minimum: Some(1),
+                            maximum: Some(1)
+                        }));
             },
             c => { // Not a meta-character, treat as a literal
                 result.push(Expression::Token(
@@ -134,6 +154,17 @@ mod expression_spec {
 
         assert!(parse_expressions("+").is_err());
         assert!(parse_expressions("++").is_err());
+    }
+
+    #[test]
+    fn handles_character_class() {
+        assert_eq!(vec![
+                   Expression::Token(Token::Class(vec!['x', 'y', 'z']),
+                                     Multiplicity {
+                                         minimum: Some(1),
+                                         maximum: Some(1)
+                                     })
+        ], parse_expressions("[xyz]").unwrap());
     }
 }
 
