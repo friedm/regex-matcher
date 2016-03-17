@@ -21,11 +21,17 @@ impl Regex {
         let mut text_i = 0;
         let mut match_start = 0;
 
+        // a stack of valid offsets, in the order we encountered them
+        let mut backtrack_stack = Vec::<(usize, usize, usize)>::new();
+
         while regex_i < expressions.len() {
             let mut options = Self::ways_to_grab_text(&text[text_i..], &expressions[regex_i]);
 
+            for option in options {
+                backtrack_stack.push((regex_i, text_i, option));
+            }
 
-            if options.len() == 0 {
+            if backtrack_stack.len() == 0 {
                 text_i += 1;
                 match_start = text_i;
 
@@ -36,10 +42,10 @@ impl Regex {
                 continue;
             }
 
-            let chosen_option = options.pop().unwrap();
+            let (reg_i,tex_i,chosen_option) = backtrack_stack.pop().unwrap();
 
-            text_i += chosen_option;
-            regex_i += 1;
+            text_i = tex_i + chosen_option;
+            regex_i = reg_i + 1;
         }
 
         Some((match_start, text_i))
