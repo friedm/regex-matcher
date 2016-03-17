@@ -24,6 +24,7 @@ impl Regex {
         while regex_i < expressions.len() {
             let mut options = Self::ways_to_grab_text(&text[text_i..], &expressions[regex_i]);
 
+
             if options.len() == 0 {
                 text_i += 1;
                 match_start = text_i;
@@ -82,21 +83,20 @@ impl Regex {
 
             match valid_multiplicity.minimum {
                 Some(min) => {
-                    if min < offset { continue; }
+                    if offset < min { continue; }
                 },
                 None => ()
             }
 
             match valid_multiplicity.maximum {
                 Some(max) => {
-                    if max > offset { continue; }
+                    if offset > max { continue; }
                 },
                 None => ()
             }
 
             valid_offsets.push(offset);
         }
-
 
         valid_offsets
     }
@@ -107,7 +107,7 @@ impl Regex {
 }
 
 #[cfg(test)]
-mod regex_spec {
+mod match_spec {
     use super::Regex;
 
     #[test]
@@ -145,6 +145,17 @@ mod regex_spec {
     }
 
     #[test]
+    fn finds_correct_match() {
+        let regex = Regex::from("[bc]?c");
+        assert_eq!(Some((0,1)), 
+                   regex.first("cb"));
+        assert_eq!(Some((0,2)),
+                   regex.first("cc"));
+        assert_eq!(Some((0,1)),
+                   regex.first("c"));
+    }
+
+    #[test]
     fn matches_zero_or_more() {
         let regex = Regex::from("ab*");
         assert!(regex.is_match("abbbb"));
@@ -152,4 +163,28 @@ mod regex_spec {
         assert!(regex.is_match("a"));
         assert!(!regex.is_match("bb"));
     }
+
+    #[test]
+    fn finds_correct_match_position() {
+        let regex = Regex::from("a");
+        assert_eq!(Some((0,1)), regex.first("a"));
+        assert_eq!(Some((3,4)), regex.first("bbba"));
+        assert_eq!(Some((0,4)), Regex::from("aaaa").first("aaaa"));
+    }
+
+    #[test]
+    fn optional_metachar_is_greedy() {
+        assert_eq!(Some((0,1)), Regex::from("a?").first("aa"));
+    }
+
+    #[test]
+    fn one_or_more_metachar_is_greedy() {
+        assert_eq!(Some((0,2)), Regex::from("a+").first("aa"));
+    }
+
+    #[test]
+    fn zero_or_more_metachar_is_greedy() {
+        assert_eq!(Some((0,2)), Regex::from("a*").first("aa"));
+    }
 }
+
