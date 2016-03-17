@@ -1,6 +1,6 @@
 use std::str::FromStr;
-use ::token::parse_expressions;
-use ::token::{Expression, Token, Multiplicity};
+use ::tokenize::parse_expressions;
+use ::expression::{Expression, Token, Multiplicity};
 
 #[derive(PartialEq,Debug)]
 pub struct Regex {
