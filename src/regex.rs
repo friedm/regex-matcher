@@ -52,9 +52,7 @@ impl Regex {
     fn ways_to_grab_text(text: &str, expr: &Expression) -> Vec<usize> {
         let mut valid_offsets = Vec::<usize>::new();
         let mut valid_chars = Vec::new();
-        let mut valid_multiplicity = Multiplicity {
-            minimum: 1, maximum: Some(1)
-        };
+        let mut valid_multiplicity = Multiplicity::one();
 
         match expr {
             &Expression::Token(ref token, ref multiplicity) => {

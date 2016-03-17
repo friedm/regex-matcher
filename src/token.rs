@@ -20,6 +20,31 @@ pub struct Multiplicity {
     pub maximum: Option<usize>
 }
 
+impl Multiplicity {
+    pub fn one() -> Multiplicity {
+        Self::new(1, Some(1))
+    }
+
+    pub fn optional() -> Multiplicity {
+        Self::new(0, Some(1))
+    }
+
+    pub fn one_or_more() -> Multiplicity {
+        Self::new(1, None)
+    }
+
+    pub fn zero_or_more() -> Multiplicity {
+        Self::new(0, None)
+    }
+
+    pub fn new(min: usize, max: Option<usize>) -> Multiplicity {
+        Multiplicity {
+            minimum: min,
+            maximum: max
+        }
+    }
+}
+
 // A regex "expression" represents a token with multiplicity, or a position
 // Eg. `[abc]*`, `[abc]{1,3}`, `^`
 #[derive(PartialEq, Debug)]
@@ -48,10 +73,7 @@ pub fn parse_expressions(text: &str) -> Result<Vec<Expression>,&str> {
                             Expression::Token(token, multiplicity) => {
                                 result.push(Expression::Token(
                                         token,
-                                        Multiplicity {
-                                            minimum: 0,
-                                            maximum: Some(1)
-                                        }));
+                                        Multiplicity::optional()));
                             },
                             _ => { return Err("invalid token before `?` metacharacter"); }
                         }
@@ -66,10 +88,7 @@ pub fn parse_expressions(text: &str) -> Result<Vec<Expression>,&str> {
                             Expression::Token(token, multiplicity) => {
                                 result.push(Expression::Token(
                                         token,
-                                        Multiplicity {
-                                            minimum: 1,
-                                            maximum: None
-                                        }));
+                                        Multiplicity::one_or_more()));
                             },
                             _ => { return Err("invalid token before `+` metacharacter"); }
                         }
@@ -84,10 +103,7 @@ pub fn parse_expressions(text: &str) -> Result<Vec<Expression>,&str> {
                             Expression::Token(token, multiplicity) => {
                                 result.push(Expression::Token(
                                         token,
-                                        Multiplicity {
-                                            minimum: 0,
-                                            maximum: None
-                                        }));
+                                        Multiplicity::zero_or_more()));
                             },
                             _ => { return Err("invalid token before `*` metacharacter"); }
                         }
@@ -107,18 +123,12 @@ pub fn parse_expressions(text: &str) -> Result<Vec<Expression>,&str> {
                 in_char_class = false;
                 result.push(Expression::Token(
                         Token::Class(chars_in_class.clone()),
-                        Multiplicity {
-                            minimum: 1,
-                            maximum: Some(1)
-                        }));
+                        Multiplicity::one()));
             },
             c => { // Not a meta-character, treat as a literal
                 result.push(Expression::Token(
                     Token::Literal(c),
-                    Multiplicity {
-                        minimum: 1,
-                        maximum: Some(1)
-                    }
+                    Multiplicity::one()
                 ));
             }
             
@@ -141,10 +151,7 @@ mod expression_spec {
         assert_eq!(vec![
                    Expression::Token(
                        Token::Literal('a'),
-                       Multiplicity {
-                           minimum: 1,
-                           maximum: Some(1)
-                       }
+                       Multiplicity::one()
                    )
         ], parse_expressions("a").unwrap())
     }
@@ -158,10 +165,7 @@ mod expression_spec {
     fn handles_optional_multiplicity() {
         assert_eq!(vec![
                    Expression::Token(Token::Literal('a'),
-                   Multiplicity {
-                       minimum: 0,
-                       maximum: Some(1)
-                   })
+                   Multiplicity::optional())
         ], parse_expressions("a?").unwrap());
 
         assert!(parse_expressions("?").is_err());
@@ -172,10 +176,7 @@ mod expression_spec {
     fn handles_one_or_more_multiplicity() {
         assert_eq!(vec![
                    Expression::Token(Token::Literal('a'),
-                   Multiplicity {
-                       minimum: 1,
-                       maximum: None
-                   })
+                   Multiplicity::one_or_more())
         ], parse_expressions("a+").unwrap());
 
         assert!(parse_expressions("+").is_err());
@@ -186,10 +187,7 @@ mod expression_spec {
     fn handles_zero_or_more_multiplicity() {
         assert_eq!(vec![
                    Expression::Token(Token::Literal('a'),
-                   Multiplicity {
-                       minimum: 0,
-                       maximum: None
-                   })
+                   Multiplicity::zero_or_more())
         ], parse_expressions("a*").unwrap());
     }
 
@@ -197,10 +195,7 @@ mod expression_spec {
     fn handles_character_class() {
         assert_eq!(vec![
                    Expression::Token(Token::Class(vec!['x', 'y', 'z']),
-                                     Multiplicity {
-                                         minimum: 1,
-                                         maximum: Some(1)
-                                     })
+                                     Multiplicity::one())
         ], parse_expressions("[xyz]").unwrap());
 
         assert!(parse_expressions("]").is_err());
