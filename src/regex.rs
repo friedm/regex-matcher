@@ -14,20 +14,22 @@ impl Regex {
         }
     }
 
-    pub fn is_match(&self, text: &str) -> bool {
+    pub fn first(&self, text: &str) -> Option<(usize, usize)> {
         let expressions = parse_expressions(&self.pattern).unwrap();
 
         let mut regex_i = 0;
         let mut text_i = 0;
+        let mut match_start = 0;
 
         while regex_i < expressions.len() {
             let mut options = Self::ways_to_grab_text(&text[text_i..], &expressions[regex_i]);
 
             if options.len() == 0 {
                 text_i += 1;
+                match_start = text_i;
 
                 if text_i >= text.len() {
-                    return false;
+                    return None;
                 }
 
                 continue;
@@ -39,7 +41,7 @@ impl Regex {
             regex_i += 1;
         }
 
-        true
+        Some((match_start, text_i))
     }
 
     fn ways_to_grab_text(text: &str, expr: &Expression) -> Vec<usize> {
@@ -99,12 +101,8 @@ impl Regex {
         valid_offsets
     }
 
-    pub fn first(&self, text: &str) -> Option<(usize, usize)> {
-        if text.contains(&self.pattern) {
-            Some((1, 2))
-        } else {
-            None
-        }
+    pub fn is_match(&self, text: &str) -> bool {
+        return self.first(text).is_some();
     }
 }
 
