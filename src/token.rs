@@ -14,7 +14,7 @@ pub enum Token {
 // Represents an upper and lower bound on the multiplicity of a regex token
 // Eg. `(Some(0), Some(1))` corresponds to `?` and `(Some(0), None)` corresponds
 // to `*`
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub struct Multiplicity {
     pub minimum: Option<usize>,
     pub maximum: Option<usize>
