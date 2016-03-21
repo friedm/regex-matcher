@@ -3,7 +3,7 @@ use ::expr::Expr;
 #[cfg(test)] mod spec;
 
 impl Expr {
-    fn is_match(&self, expr: &str) -> bool {
+    pub fn is_match(&self, expr: &str) -> bool {
 
         if expr.len() == 0 { 
             return match self {

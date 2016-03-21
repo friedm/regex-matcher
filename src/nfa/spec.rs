@@ -48,5 +48,10 @@ fn matches_sequenced_optional() {
     assert!(!exp.is_match("b"));
     assert!(exp.is_match("ab"));
     assert!(exp.is_match("ba"));
+
+    let exp = Expr::Sequence(Box::new(Expr::Optional(Box::new(Expr::Single('a')))),
+                             Box::new(Expr::Single('a')));
+    assert!(exp.is_match("a"));
 }
+
 
