@@ -18,6 +18,10 @@ A basic regular expression matcher, from scratch.
 * special escape sequences like `\b` and `\s`
 * regex OR `|`
 * sub-regexes grouped with `(` and `)`
-* lookaround
-* captures and backreferences
+
+### References
+
+https://swtch.com/~rsc/regexp/regexp1.html
+en.wikipedia.org/wiki/Shunting-yard_algorithm
+Mastering Regular Expressions
 
