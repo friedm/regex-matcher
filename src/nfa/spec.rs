@@ -17,6 +17,36 @@ fn matches_sequence() {
     assert!(!exp.is_match(""));
     assert!(!exp.is_match("a"));
     assert!(!exp.is_match("b"));
+    assert!(!exp.is_match("cc"));
     assert!(exp.is_match("ab"));
     assert!(exp.is_match("bab"));
 }
+
+#[test]
+fn matches_or() {
+    let exp = Expr::Or(Box::new(Expr::Single('a')), Box::new(Expr::Single('b')));
+    assert!(!exp.is_match(""));
+    assert!(!exp.is_match("c"));
+    assert!(exp.is_match("a"));
+    assert!(exp.is_match("b"));
+}
+
+#[test]
+fn matches_optional() {
+    let exp = Expr::Optional(Box::new(Expr::Single('a')));
+    assert!(exp.is_match(""));
+    assert!(exp.is_match("b"));
+    assert!(exp.is_match("a"));
+}
+
+#[test]
+fn matches_sequenced_optional() {
+    let exp = Expr::Sequence(Box::new(Expr::Single('a')),
+                                   Box::new(Expr::Optional(Box::new(
+                                               Expr::Single('b')))));
+    assert!(!exp.is_match(""));
+    assert!(!exp.is_match("b"));
+    assert!(exp.is_match("ab"));
+    assert!(exp.is_match("ba"));
+}
+

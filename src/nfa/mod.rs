@@ -5,7 +5,12 @@ use ::expr::Expr;
 impl Expr {
     fn is_match(&self, expr: &str) -> bool {
 
-        if expr.len() == 0 { return false; } // false since the regex "" is not currently possible
+        if expr.len() == 0 { 
+            return match self {
+                &Expr::Optional(_) => true,
+                _ => false
+            }; 
+        } 
 
         let mut chars = expr.chars();
         let mut current = chars.next().unwrap();
@@ -15,6 +20,12 @@ impl Expr {
             },
             &Expr::Sequence(ref left, ref right) => {
                 left.is_match(expr) && right.is_match(&expr[1..])
+            },
+            &Expr::Or(ref left, ref right) => {
+                left.is_match(expr) || right.is_match(expr)
+            },
+            &Expr::Optional(ref item) => {
+                true
             },
             _ => panic!()
         };
