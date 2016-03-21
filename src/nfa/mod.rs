@@ -13,6 +13,9 @@ enum Expr {
     OneOrMore(Box<Expr>)
 }
 
+impl Expr {
+}
+
 impl FromStr for Expr {
     type Err = String;
 
@@ -20,19 +23,43 @@ impl FromStr for Expr {
 
         let mut output_queue = VecDeque::<Expr>::new();
         let mut operator_stack = Vec::<char>::new();
+        let mut last_was_char = false;
 
         for c in s.chars() {
-            if binary_operators.contains(&c) {
-                pop_infix_operators(&mut operator_stack, &mut output_queue);
+            if c == '(' {
+                if !output_queue.is_empty() && last_was_char {
+                    operator_stack.push('@'); // "sequence" operator
+                }
                 operator_stack.push(c);
+                last_was_char = false;
+            } else if c == ')' {
+                let mut top = operator_stack.pop().expect("mismatched parens");
+                while top != '(' {
+                    pop_infix_operator(top, &mut output_queue);
+                    top = operator_stack.pop().unwrap();
+                }
+                last_was_char = false;
+            } else if binary_operators.contains(&c) {
+                while !operator_stack.is_empty() {
+                    pop_infix_operator(operator_stack.pop().unwrap(), &mut output_queue);
+                }
+                operator_stack.push(c);
+                last_was_char = false;
             } else if unary_postfix_operators.contains(&c) {
                 apply_postfix_operator(c, &mut output_queue);
+                last_was_char = false;
             } else {
-                output_queue.push_back(Expr::Single(c))
+                if !output_queue.is_empty() && last_was_char {
+                    operator_stack.push('@'); // "sequence" operator
+                }
+                output_queue.push_back(Expr::Single(c));
+                last_was_char = true;
             }
         }
 
-        pop_infix_operators(&mut operator_stack, &mut output_queue);
+        while !operator_stack.is_empty() {
+            pop_infix_operator(operator_stack.pop().unwrap(), &mut output_queue);
+        }
 
         // build sequence tree from queue
         while output_queue.len() > 1 {
@@ -50,17 +77,15 @@ impl FromStr for Expr {
 static unary_postfix_operators: &'static [char] = &['?', '*', '+'];
 static binary_operators: &'static [char] = &['|'];
 
-fn pop_infix_operators(operator_stack: &mut Vec<char>, output_queue: &mut VecDeque<Expr>) {
-    while !operator_stack.is_empty() {
-
-        println!("{:?}, {:?}", output_queue, operator_stack);
-        // TODO handle prescedence
-        match operator_stack.pop().unwrap() {
-            '|' => { 
-                apply_binary_operator(output_queue, &|l,r| Expr::Or(l,r));
-            },
-            _ => panic!("unknown infix operator")
-        }
+fn pop_infix_operator(operator: char, output_queue: &mut VecDeque<Expr>) {
+    match operator {
+        '|' => { 
+            apply_binary_operator(output_queue, &|l,r| Expr::Or(l,r));
+        },
+        '@' => { // sequence operator (inserted between consecutive single chars)
+            apply_binary_operator(output_queue, &|l,r| Expr::Sequence(l,r));
+        },
+        op => panic!("unknown infix operator {}", op)
     }
 }
 
@@ -74,7 +99,7 @@ fn apply_postfix_operator(operator: char, output_queue: &mut VecDeque<Expr>) {
         },
         '+' => {
             apply_unary_operator(output_queue, &|expr| Expr::OneOrMore(expr));
-        }
+        },
         _ => panic!("unknown postfix operator")
     }
 }
@@ -82,8 +107,8 @@ fn apply_postfix_operator(operator: char, output_queue: &mut VecDeque<Expr>) {
 fn apply_binary_operator(output_queue: &mut VecDeque<Expr>, 
                          constructor: &Fn(Box<Expr>, Box<Expr>) -> Expr) {
 
-    let right = output_queue.pop_back().unwrap();
-    let left = output_queue.pop_back().unwrap();
+    let right = output_queue.pop_back().expect("not enough elements in queue for binary operator");
+    let left = output_queue.pop_back().expect("not enough elements in queue for binary operator");
 
     output_queue.push_back(constructor(Box::new(left),Box::new(right)));
 }

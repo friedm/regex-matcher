@@ -64,7 +64,7 @@ fn parse_parens() {
 
     assert_eq!(
         Expr::Sequence(
-            Box::new(Expr::Optional(Box::new(Expr::Sequence(Box::new(Expr::Single('a')),
+            Box::new(Expr::OneOrMore(Box::new(Expr::Sequence(Box::new(Expr::Single('a')),
                                           Box::new(Expr::Single('b')))))),
             Box::new(Expr::Single('c'))),
                "(ab)+c".parse::<Expr>().unwrap());
