@@ -1,6 +1,5 @@
-use std::str::FromStr;
 use ::tokenize::tokenize_regex;
-use ::expression::{Expression, Token, Multiplicity};
+use ::expression::{Expression};
 
 #[cfg(test)] mod spec;
 
@@ -25,7 +24,7 @@ impl Regex {
         let mut backtrack_stack = Vec::<(usize, usize, usize)>::new();
 
         while regex_i < self.expressions.len() {
-            let mut options = self.expressions[regex_i].valid_offsets(&text[text_i..]);
+            let options = self.expressions[regex_i].valid_offsets(&text[text_i..]);
 
             backtrack_stack.extend(options.iter()
                                      .map(|&option| (regex_i, text_i, option))
