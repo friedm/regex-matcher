@@ -4,16 +4,13 @@ use std::collections::vec_deque::VecDeque;
 #[cfg(test)] mod spec;
 
 #[derive(PartialEq, Debug)]
-enum Expr {
+pub enum Expr {
     Single(char),
     Sequence(Box<Expr>, Box<Expr>),
     Or(Box<Expr>, Box<Expr>),
     Optional(Box<Expr>),
     ZeroOrMore(Box<Expr>),
     OneOrMore(Box<Expr>)
-}
-
-impl Expr {
 }
 
 impl FromStr for Expr {
