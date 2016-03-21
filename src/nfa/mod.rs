@@ -41,6 +41,7 @@ impl FromStr for Expr {
                 last_was_char = false;
             } else if binary_operators.contains(&c) {
                 while !operator_stack.is_empty() {
+                    if operator_stack.last().unwrap() == &'(' { break; } // parens have higher prescedence than any other operator
                     pop_infix_operator(operator_stack.pop().unwrap(), &mut output_queue);
                 }
                 operator_stack.push(c);
