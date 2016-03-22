@@ -34,16 +34,16 @@ fn parse_or() {
 
 #[test]
 fn parse_optional() {
-    assert_eq!(Expr::Optional(Box::new(Expr::Single('a'))),
+    assert_eq!(Expr::optional(Expr::Single('a')),
     "a?".parse::<Expr>().unwrap());
 }
 
 #[test]
 fn parse_kleene_star() {
-    assert_eq!(Expr::ZeroOrMore(Box::new(Expr::Single('a'))),
+    assert_eq!(Expr::zero_or_more(Expr::Single('a')),
     "a*".parse::<Expr>().unwrap());
     assert_eq!(Expr::sequence(Expr::Single('a'),
-                Expr::ZeroOrMore(Box::new(Expr::Single('b')))),
+                Expr::zero_or_more(Expr::Single('b'))),
     "ab*".parse::<Expr>().unwrap());
 
 }

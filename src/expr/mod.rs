@@ -21,6 +21,14 @@ impl Expr {
     pub fn or(left: Expr, right: Expr) -> Expr {
         Expr::Or(Box::new(left), Box::new(right))
     }
+
+    pub fn optional(item: Expr) -> Expr {
+        Expr::Optional(Box::new(item))
+    }
+
+    pub fn zero_or_more(item: Expr) -> Expr {
+        Expr::ZeroOrMore(Box::new(item))
+    }
 }
 
 impl FromStr for Expr {

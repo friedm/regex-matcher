@@ -2,6 +2,10 @@ use ::expr::Expr;
 
 #[cfg(test)] mod spec;
 
+struct NFA {
+    states: Vec<State>
+}
+
 #[derive(PartialEq,Clone,Debug)]
 pub enum State {
     State{edge: char, out: Box<State>},
@@ -46,8 +50,19 @@ impl State {
                 State::split(left, right)
             },
             &Expr::Optional(ref item) => {
-                State::End
+
+                let item = Self::build_expr(item);
+                State::split(item, State::Detached)
             },
+            //&Expr::ZeroOrMore(ref item) => {
+
+                //let mut split = State::split(State::Detached, State::Detached);
+                //let item = Self::build_expr(item);
+                //let boxed_item = item.with_outputs_to_box(Box::new(split));
+
+                //State::Detached
+
+            //}
             _ => panic!()
         }
     }
@@ -65,5 +80,18 @@ impl State {
             State::End => State::End
         }
     }
+
+    //fn with_outputs_to_box(self, new_state: Box<State>) -> Box<State> {
+        //match self {
+            //State::State{edge, out} => 
+                //Box::new(State::State{edge: edge,  
+                    //out: (*out).with_outputs_to_box(new_state)}),
+            //State::Split{state1, state2} =>
+                //Box::new(State::Split{state1: (*state1).with_outputs_to_box(new_state),
+                             //state2: (*state2).with_outputs_to_box(new_state)}),
+            //State::Detached => new_state,
+            //State::End => Box::new(State::End)
+        //}
+    //}
 }
 
