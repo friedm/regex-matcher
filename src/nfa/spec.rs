@@ -15,3 +15,13 @@ fn build_sequence() {
     assert_eq!(State::state('a', State::state('b', State::End)),
                nfa);
 }
+
+#[test]
+fn build_or() {
+    let nfa = State::from_expr(&Expr::or(Expr::Single('a'), Expr::Single('b')));
+
+    assert_eq!(State::split(State::state('a', State::End),
+                            State::state('b', State::End)),
+               nfa);
+}
+
