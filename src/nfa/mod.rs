@@ -53,8 +53,8 @@ impl State {
     }
 
     // recursively replace all detached outputs with the given state
-    fn with_outputs(state: State, new_state: State) -> State {
-        match state {
+    fn with_outputs(self, new_state: State) -> State {
+        match self {
             State::State{edge, out} => 
                 State::State{edge: edge,  
                              out: Box::new(Self::with_outputs(*out, new_state.clone()))},
