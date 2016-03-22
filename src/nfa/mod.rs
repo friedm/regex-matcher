@@ -23,7 +23,7 @@ impl State {
     pub fn from_expr(expr: &Expr) -> State {
 
         let state = Self::build_expr(expr);
-        Self::with_outputs(state, State::End)
+        state.with_outputs(State::End)
     }
 
     fn build_expr(expr: &Expr) -> State {
@@ -36,7 +36,7 @@ impl State {
                 let left = Self::build_expr(left);
                 let right = Self::build_expr(right);
 
-                Self::with_outputs(left, right)
+                left.with_outputs(right)
             },
             &Expr::Or(ref left, ref right) => {
 
@@ -57,10 +57,10 @@ impl State {
         match self {
             State::State{edge, out} => 
                 State::State{edge: edge,  
-                             out: Box::new(Self::with_outputs(*out, new_state.clone()))},
+                             out: Box::new((*out).with_outputs(new_state.clone()))},
             State::Split{state1, state2} =>
-                State::Split{state1: Box::new(Self::with_outputs(*state1, new_state.clone())),
-                             state2: Box::new(Self::with_outputs(*state2, new_state.clone()))},
+                State::Split{state1: Box::new((*state1).with_outputs(new_state.clone())),
+                             state2: Box::new((*state2).with_outputs(new_state.clone()))},
             State::Detached => new_state,
             State::End => State::End
         }
