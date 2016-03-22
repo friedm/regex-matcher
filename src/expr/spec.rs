@@ -8,27 +8,27 @@ fn parse_single() {
 
 #[test]
 fn parse_sequence() {
-    assert_eq!(Expr::Sequence(Box::new(Expr::Single('a')),
-                              Box::new(Expr::Single('b'))),
+    assert_eq!(Expr::sequence(Expr::Single('a'),
+                              Expr::Single('b')),
                "ab".parse::<Expr>().unwrap());
 }
 
 #[test]
 fn parse_nested_sequence() {
-    assert_eq!(Expr::Sequence(Box::new(Expr::Single('a')),
-                              Box::new(Expr::Sequence(Box::new(Expr::Single('b')),
-                                             Box::new(Expr::Single('c'))))),
+    assert_eq!(Expr::sequence(Expr::Single('a'),
+                              Expr::sequence(Expr::Single('b'),
+                                             Expr::Single('c'))),
                "abc".parse::<Expr>().unwrap());
 }
 
 #[test]
 fn parse_or() {
-    assert_eq!(Expr::Or(Box::new(Expr::Single('a')),
-                        Box::new(Expr::Single('b'))),
+    assert_eq!(Expr::or(Expr::Single('a'),
+                        Expr::Single('b')),
                "a|b".parse::<Expr>().unwrap());
 
-    assert_eq!(Expr::Or(Box::new(Expr::Sequence(Box::new(Expr::Single('a')), Box::new(Expr::Single('b')))),
-                        Box::new(Expr::Sequence(Box::new(Expr::Single('c')), Box::new(Expr::Single('d'))))),
+    assert_eq!(Expr::or(Expr::sequence(Expr::Single('a'), Expr::Single('b')),
+                        Expr::sequence(Expr::Single('c'), Expr::Single('d'))),
                "ab|cd".parse::<Expr>().unwrap());
 }
 
@@ -42,8 +42,8 @@ fn parse_optional() {
 fn parse_kleene_star() {
     assert_eq!(Expr::ZeroOrMore(Box::new(Expr::Single('a'))),
     "a*".parse::<Expr>().unwrap());
-    assert_eq!(Expr::Sequence(Box::new(Expr::Single('a')),Box::new(
-                Expr::ZeroOrMore(Box::new(Expr::Single('b'))))),
+    assert_eq!(Expr::sequence(Expr::Single('a'),
+                Expr::ZeroOrMore(Box::new(Expr::Single('b')))),
     "ab*".parse::<Expr>().unwrap());
 
 }
@@ -57,24 +57,24 @@ fn parse_kleene_plus() {
 #[test]
 fn parse_combination() {
     assert_eq!(
-        Expr::Sequence(Box::new(Expr::Single('a')),
-                       Box::new(Expr::Sequence(
-                               Box::new(Expr::OneOrMore(Box::new(Expr::Single('b')))),
-                               Box::new(Expr::Single('c'))))),
+        Expr::sequence(Expr::Single('a'),
+                       Expr::sequence(
+                               Expr::OneOrMore(Box::new(Expr::Single('b'))),
+                               Expr::Single('c'))),
                "ab+c".parse::<Expr>().unwrap());
 }
 
 #[test]
 fn parse_parens() {
-    assert_eq!(Expr::OneOrMore(Box::new(Expr::Sequence(Box::new(Expr::Single('a')),
-                                             Box::new(Expr::Single('b'))))),
+    assert_eq!(Expr::OneOrMore(Box::new(Expr::sequence(Expr::Single('a'),
+                                             Expr::Single('b')))),
                "(ab)+".parse::<Expr>().unwrap());
 
     assert_eq!(
-        Expr::Sequence(
-            Box::new(Expr::OneOrMore(Box::new(Expr::Sequence(Box::new(Expr::Single('a')),
-                                          Box::new(Expr::Single('b')))))),
-            Box::new(Expr::Single('c'))),
+        Expr::sequence(
+            Expr::OneOrMore(Box::new(Expr::sequence(Expr::Single('a'),
+                                          Expr::Single('b')))),
+            Expr::Single('c')),
                "(ab)+c".parse::<Expr>().unwrap());
     
     assert_eq!(Expr::Single('a'),

@@ -17,6 +17,10 @@ impl Expr {
     pub fn sequence(left: Expr, right: Expr) -> Expr {
         Expr::Sequence(Box::new(left), Box::new(right))
     }
+
+    pub fn or(left: Expr, right: Expr) -> Expr {
+        Expr::Or(Box::new(left), Box::new(right))
+    }
 }
 
 impl FromStr for Expr {
@@ -70,8 +74,8 @@ impl FromStr for Expr {
             let right = output_queue.pop_back().unwrap();
             let left = output_queue.pop_back().unwrap();
 
-            output_queue.push_back(Expr::Sequence(Box::new(left),
-                                                  Box::new(right)));
+            output_queue.push_back(Expr::sequence(left,
+                                                  right));
         }
 
         output_queue.pop_front().ok_or("output queue empty".to_owned())
