@@ -13,6 +13,12 @@ pub enum Expr {
     OneOrMore(Box<Expr>)
 }
 
+impl Expr {
+    pub fn sequence(left: Expr, right: Expr) -> Expr {
+        Expr::Sequence(Box::new(left), Box::new(right))
+    }
+}
+
 impl FromStr for Expr {
     type Err = String;
 

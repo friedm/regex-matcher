@@ -2,35 +2,55 @@ use ::expr::Expr;
 
 #[cfg(test)] mod spec;
 
-impl Expr {
-    pub fn is_match(&self, expr: &str) -> bool {
+#[derive(PartialEq,Debug)]
+pub enum State {
+    State{edge: char, out: Box<State>},
+    Detached,
+    End
+}
 
-        if expr.len() == 0 { 
-            return match self {
-                &Expr::Optional(_) => true,
-                _ => false
-            }; 
-        } 
+impl State {
+    pub fn state(edge: char, out: State) -> State {
+        State::State{edge: edge, out: Box::new(out)}
+    }
 
-        let mut chars = expr.chars();
-        let mut current = chars.next().unwrap();
-        let matches = match self {
+    pub fn from_expr(expr: &Expr) -> State {
+
+        let state = Self::build_expr(expr);
+        Self::with_outputs(state, State::End)
+    }
+
+    fn build_expr(expr: &Expr) -> State {
+        match expr {
             &Expr::Single(c) => {
-                current == c
+                State::state(c, State::Detached)
             },
             &Expr::Sequence(ref left, ref right) => {
-                left.is_match(expr) && right.is_match(&expr[1..])
+
+                let left = Self::build_expr(left);
+                let right = Self::build_expr(right);
+
+                Self::with_outputs(left, right)
             },
             &Expr::Or(ref left, ref right) => {
-                left.is_match(expr) || right.is_match(expr)
+                State::End
             },
             &Expr::Optional(ref item) => {
-                true
+                State::End
             },
             _ => panic!()
-        };
+        }
+    }
 
-        matches || self.is_match(&expr[1..])
+    // recursively replace all detached outputs with the given state
+    fn with_outputs(state: State, new_state: State) -> State {
+        match state {
+           State::State{edge, out} => 
+               State::State{edge: edge,  
+                            out: Box::new(Self::with_outputs(*out, new_state))},
+            State::Detached => new_state,
+            State::End => State::End
+        }
     }
 }
 
