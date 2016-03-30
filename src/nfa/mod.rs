@@ -1,17 +1,16 @@
 use ::expr::Expr;
 
-#[cfg(test)] mod parse_spec;
-#[cfg(test)] mod run_spec;
+#[cfg(test)] mod spec;
 
 
 #[derive(PartialEq,Debug,Clone)]
-enum State {
+pub enum State {
     State{edge: Option<char>, out: Edge},
     Split{s1: Option<char>, out1: Edge, s2: Option<char>, out2: Edge}
 }
 
 #[derive(PartialEq,Debug,Clone)]
-enum Edge {
+pub enum Edge {
     Id(usize),
     Detached,
     End
@@ -43,6 +42,25 @@ impl NFA {
             start: 0,
             states: Vec::new()
         }
+    }
+
+    pub fn from_states(states: Vec<State>) -> NFA {
+        NFA {
+            start: 0,
+            states: states
+        }
+    }
+
+    pub fn get_start(&self) -> &State {
+        &self.states[self.start]
+    }
+
+    pub fn get_state(&self, index: usize) -> &State {
+        &self.states[index]
+    }
+
+    pub fn num_states(&self) -> usize {
+        self.states.len()
     }
 
     pub fn from_expr(expr: &Expr) -> NFA {
@@ -111,8 +129,5 @@ impl NFA {
         }
     }
 
-    pub fn run(&self, text: &str) -> bool {
-        false
-    }
 }
 

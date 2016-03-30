@@ -1,4 +1,5 @@
 pub mod regex;
+mod matcher;
 mod nfa;
 mod expr;
 
