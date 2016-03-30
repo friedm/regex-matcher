@@ -3,12 +3,13 @@ use ::expr::Expr;
 #[cfg(test)] mod spec;
 
 
-#[derive(PartialEq,Clone,Debug)]
-pub enum State {
+#[derive(PartialEq,Debug,Clone)]
+enum State {
     State{edge: char, out: Edge},
-    Split{state1: State, state2: State}
+    Split{s1: char, out1: Edge, s2: char, out2: Edge}
 }
 
+#[derive(PartialEq,Debug,Clone)]
 enum Edge {
     Id(usize),
     Detached,
@@ -20,12 +21,15 @@ impl State {
         State::State{edge: edge, out: out}
     }
 
-    pub fn split(state1: Edge, state2: Edge) -> State {
-        State::Split{state1: state1,
-                     state2: state2}
+    pub fn split(s1: char, out1: Edge, s2: char, out2: Edge) -> State {
+        State::Split{s1: s1,
+                     out1: out1,
+                     s2: s2,
+                     out2: out2}
     }
 }
 
+#[derive(Debug)]
 struct NFA {
     states: Vec<State>
 }
@@ -39,10 +43,10 @@ impl NFA {
     }
 
     pub fn from_expr(expr: &Expr) -> NFA {
-        let nfa = Self::new();
+        let mut nfa = Self::new();
 
         let id = nfa.build_expr(expr);
-        nfa.update_outputs(id, State::End);
+        nfa.update_outputs(id, Edge::End);
         nfa
     }
 
@@ -50,15 +54,14 @@ impl NFA {
         let id = match expr {
             &Expr::Single(c) => {
                 let new_state_id = self.states.len();
-                let s = State::state(c, new_state_id + 1);
+                let s = State::state(c, Edge::Detached);
                 self.states.push(s);
-                self.states.push(State::Detached);
                 self.states.len() - 1
             },
             &Expr::Sequence(ref a, ref b) => {
                 let left_id = self.build_expr(&*a);
                 let right_id = self.build_expr(&*b);
-                self.update_outputs(left_id, right_id);
+                self.update_outputs(left_id, Edge::Id(right_id));
                 left_id
             },
             _ => panic!()
@@ -67,23 +70,25 @@ impl NFA {
         id
     }
 
-    fn update_outputs(self, start_id: usize, new_id: usize) {
-
-        let state = match self.states[start_id] {
-            State::State{edge, out} => {
+    fn update_outputs(&mut self, start_id: usize, new_edge: Edge) {
+        let state = self.states[start_id].clone();
+        let state = match state {
+            State::State{edge, ref out} => {
                 State::state(edge, 
-                             match self.states[out] {
-                                 State::Detached => {
-                                     new_id
+                             match out {
+                                 &Edge::Detached => {
+                                     new_edge
                                  },
-                                 _ => {
-                                     self.update_outputs(out, new_id);
-                                     out
-                                 }
+                                 &Edge::Id(id) => {
+                                     self.update_outputs(id, new_edge);
+                                     out.clone()
+                                 },
+                                 _ => out.clone()
                              })
             },
-            _ => self.states[start_id]
+            _ => state
         };
+        self.states[start_id] = state;
     }
 }
 

@@ -1,17 +1,17 @@
 use ::expr::Expr;
-use super::{State};
+use super::{State, Edge, NFA};
 
 #[test]
 fn build_single() {
-    let nfa = State::from_expr(&Expr::Single('a'));
+    let nfa = NFA::from_expr(&Expr::Single('a'));
 
-    assert_eq!(vec![State::state('a', State::End)], nfa);
+    assert_eq!(vec![State::state('a', Edge::End)], nfa.states);
 }
 
 #[test]
 fn build_sequence() {
-    let expr = State::from_expr(&Expr::sequence(Expr::Single('a'),Expr::Single('b')));
+    let expr = NFA::from_expr(&Expr::sequence(Expr::Single('a'),Expr::Single('b')));
     
-    assert_eq!(vec![State::state('a', State::state('b', State::End))], expr);
+    assert_eq!(vec![State::state('a', Edge::Id(1)), State::state('b', Edge::End)], expr.states);
 }
 
