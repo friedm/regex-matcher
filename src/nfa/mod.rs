@@ -29,7 +29,7 @@ impl State {
     }
 }
 
-#[derive(PartialEq,Debug)]
+#[derive(PartialEq,Debug,Clone)]
 pub struct NFA {
     start: usize,
     states: Vec<State>
@@ -51,12 +51,21 @@ impl NFA {
         }
     }
 
-    pub fn get_start(&self) -> &State {
-        &self.states[self.start]
+    pub fn get_start(&self) -> Option<State> {
+        if self.start >= self.states.len() {
+            None
+        } else {
+            Some(self.states[self.start].clone())
+        }
     }
 
-    pub fn get_state(&self, index: usize) -> &State {
-        &self.states[index]
+    pub fn get_state(&self, index: usize) -> Option<State> {
+        if index >= self.states.len() {
+            None
+        } else {
+            Some(self.states[index].clone())
+        }
+
     }
 
     pub fn num_states(&self) -> usize {

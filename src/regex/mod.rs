@@ -1,6 +1,6 @@
 use ::expr::Expr;
 use ::nfa::NFA;
-use ::matcher::run;
+use ::matcher::Matcher;
 
 #[cfg(test)] mod spec;
 
@@ -18,7 +18,7 @@ impl Regex {
     }
 
     pub fn is_match(&self, text: &str) -> bool {
-        run(&self.nfa, text)
+        Matcher::new(self.nfa.clone(), text).run()
     }
 }
 
