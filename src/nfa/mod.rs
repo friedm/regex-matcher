@@ -31,6 +31,11 @@ impl State {
             &Expr::Single(c) => {
                 State::state(c, State::Detached)
             },
+            &Expr::Sequence(ref a, ref b) => {
+                let left = Self::build_expr(&*a);
+                let right = Self::build_expr(&*b);
+                left.with_outputs(right)
+            },
             _ => panic!()
         }
     }
@@ -43,7 +48,7 @@ impl State {
                                  State::Detached => {
                                      new_state
                                  },
-                                 _ => *out
+                                 _ => out.with_outputs(new_state)
                              })
             },
             _ => self
