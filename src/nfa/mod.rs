@@ -68,6 +68,7 @@ impl NFA {
     }
 
     fn update_outputs(self, start_id: usize, new_id: usize) {
+
         let state = match self.states[start_id] {
             State::State{edge, out} => {
                 State::state(edge, 
