@@ -1,9 +1,13 @@
 use super::{Regex};
 
 #[test]
-#[ignore]
 fn creates_new() {
-    Regex::from("").unwrap();
+    assert!(Regex::from("a").is_ok());
+}
+
+#[test]
+fn creates_empty() {
+    assert!(Regex::from("").is_err());
 }
 
 #[test]

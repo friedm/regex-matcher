@@ -7,6 +7,11 @@ fn parse_single() {
 }
 
 #[test]
+fn parse_empty() {
+    assert!("".parse::<Expr>().is_err());
+}
+
+#[test]
 fn parse_sequence() {
     assert_eq!(Expr::sequence(Expr::Single('a'),
                               Expr::Single('b')),

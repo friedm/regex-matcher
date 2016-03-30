@@ -45,4 +45,3 @@ fn build_complex_option() {
     assert_eq!(2, nfa.start);
 }
 
-
