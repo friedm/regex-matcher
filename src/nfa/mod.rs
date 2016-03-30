@@ -1,6 +1,7 @@
 use ::expr::Expr;
 
-#[cfg(test)] mod spec;
+#[cfg(test)] mod parse_spec;
+#[cfg(test)] mod run_spec;
 
 
 #[derive(PartialEq,Debug,Clone)]
