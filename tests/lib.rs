@@ -4,12 +4,13 @@ extern crate test;
 use self::test::Bencher;
 
 extern crate regexmatcher;
-use self::regexmatcher::Expr;
+use self::regexmatcher::Regex;
 
 #[bench]
+#[ignore]
 fn bench_regex(b: &mut Bencher) {
     b.iter(|| {
-        let expr = "a?a".parse::<Expr>().unwrap();
+        let expr = Regex::from("a?a").unwrap();
         assert!(expr.is_match("a"));
     });
 }

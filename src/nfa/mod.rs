@@ -29,8 +29,8 @@ impl State {
     }
 }
 
-#[derive(Debug)]
-struct NFA {
+#[derive(PartialEq,Debug)]
+pub struct NFA {
     start: usize,
     states: Vec<State>
 }
@@ -108,6 +108,10 @@ impl NFA {
             },
             _ => edge
         }
+    }
+
+    pub fn run(&self, text: &str) -> bool {
+        false
     }
 }
 
