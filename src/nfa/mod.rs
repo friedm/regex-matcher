@@ -47,8 +47,9 @@ impl NFA {
     pub fn from_expr(expr: &Expr) -> NFA {
         let mut nfa = Self::new();
 
-        nfa.start = nfa.build_expr(expr);
-        nfa.update_outputs(id, Edge::End);
+        let start = nfa.build_expr(expr);
+        nfa.update_outputs(start, Edge::End);
+        nfa.start = start;
         nfa
     }
 
