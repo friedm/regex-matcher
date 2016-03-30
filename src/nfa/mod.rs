@@ -31,6 +31,7 @@ impl State {
 
 #[derive(Debug)]
 struct NFA {
+    start: usize,
     states: Vec<State>
 }
 
@@ -38,6 +39,7 @@ impl NFA {
 
     pub fn new() -> NFA {
         NFA {
+            start: 0,
             states: Vec::new()
         }
     }
@@ -45,7 +47,7 @@ impl NFA {
     pub fn from_expr(expr: &Expr) -> NFA {
         let mut nfa = Self::new();
 
-        let id = nfa.build_expr(expr);
+        nfa.start = nfa.build_expr(expr);
         nfa.update_outputs(id, Edge::End);
         nfa
     }
