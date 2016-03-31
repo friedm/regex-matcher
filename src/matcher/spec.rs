@@ -2,10 +2,12 @@ use ::nfa::{NFA, State, Edge};
 use super::{Matcher, PotentialMatch};
 
 #[test]
-fn is_fail() {
-    let m = PotentialMatch::new(None, "a");
-    assert_eq!(false, m.is_match());
-    assert_eq!(true, m.is_fail());
+fn advance_fail() {
+    let nfa = NFA::from_states(vec![
+        State::state(Some('b'), Edge::End)
+    ]);
+    let m = PotentialMatch::new(Some(nfa.get_state(0).clone().unwrap()), "a");
+    assert_eq!(Vec::<PotentialMatch>::new(), m.advance(&nfa));
 }
 
 #[test]
@@ -66,7 +68,6 @@ fn empty_nfa_matches() {
 }
 
 #[test]
-#[ignore]
 fn single_state_matches() {
     let nfa = NFA::from_states(vec![
         State::state(None, Edge::End)

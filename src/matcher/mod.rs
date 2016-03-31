@@ -11,7 +11,7 @@ struct PotentialMatch {
 impl PotentialMatch {
     pub fn advance(&self, nfa: &NFA) -> Vec<PotentialMatch> {
         if self.current_state.is_none() {
-            return vec![];
+            return vec![self.clone()];
         }
 
         let current_state = self.current_state.clone().unwrap();
@@ -37,18 +37,8 @@ impl PotentialMatch {
                                 },
                                 _ => panic!()
                             }
-                        } else {
-                            match out {
-                                &Edge::End => {
-                                    vec![PotentialMatch::new(None, 
-                                                             &self.remaining_text)]
-                                },
-                                &Edge::Id(id) => {
-                                    vec![PotentialMatch::new(nfa.get_state(id),
-                                                             &self.remaining_text)]
-                                },
-                                _ => panic!()
-                            }
+                        } else { // cannot proceed
+                            vec![]
                         }
                     },
                     &None => {
@@ -102,7 +92,7 @@ impl PotentialMatch {
                     }
                 }
             },
-            None => self.remaining_text.is_empty()
+            None => true
         }
     }
 
@@ -120,7 +110,7 @@ impl PotentialMatch {
                     }
                 }
             },
-            None => !self.remaining_text.is_empty()
+            None => false
         }
     }
 
