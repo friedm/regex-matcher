@@ -2,7 +2,7 @@ use ::nfa::{State, Edge, NFA};
 
 #[cfg(test)] mod spec;
 
-#[derive(Clone)]
+#[derive(Clone,PartialEq,Debug)]
 struct PotentialMatch {
     current_state: Option<State>,
     remaining_text: String
