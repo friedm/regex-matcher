@@ -67,6 +67,38 @@ fn advance_to_next() {
 }
 
 #[test]
+fn is_match_with_split() {
+    let nfa = NFA::from_states(vec![
+        State::split(Some('a'), Edge::End, Some('b'), Edge::End)
+    ]);
+
+    let m = PotentialMatch::new(nfa.get_start(), "a");
+    assert!(m.advance(&nfa)[0].is_match());
+    let m = PotentialMatch::new(nfa.get_start(), "b");
+    assert!(m.advance(&nfa)[0].is_match())
+}
+
+#[test]
+fn advances_with_split() { // '(a|b)c'
+    let nfa = NFA::from_states(vec![
+        State::split(Some('a'), Edge::Id(1), Some('b'), Edge::Id(1)),
+        State::state(Some('c'), Edge::End)
+    ]);
+
+    let m = PotentialMatch::new(nfa.get_start(), "ac");
+    assert_eq!(vec![
+               PotentialMatch::new(nfa.get_state(1), "c"),
+    ],
+        m.advance(&nfa));
+
+    let m = PotentialMatch::new(nfa.get_start(), "bc");
+    assert_eq!(vec![
+               PotentialMatch::new(nfa.get_state(1), "c"),
+    ],
+        m.advance(&nfa))
+}
+
+#[test]
 fn empty_nfa_matches() {
     let nfa = NFA::from_states(vec![]);
 
@@ -99,7 +131,7 @@ fn null_edge_matches() {
         State::state(Some('a'), Edge::End)
     ]);
 
-    //assert!(Matcher::new(nfa.clone(), "a").run());
+    assert!(Matcher::new(nfa.clone(), "a").run());
     assert!(!Matcher::new(nfa.clone(), "").run());
 }
 

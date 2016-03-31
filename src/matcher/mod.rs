@@ -60,21 +60,6 @@ impl PotentialMatch {
             },
             State::Split{ref s1, ref out1, ref s2, ref out2} => {
                 vec![]
-                //match (s1, s2) {
-                //    // TODO match priority
-                //    (Some(val1),Some(val2)) => {
-                //        out1.advance().append(out2.advance())
-                //    },
-                //    (None,Some(val)) => {
-                //        out2.advance().append(out1.advance())
-                //    },
-                //    (Some(val),None) => {
-                //        out1.advance().append(out2.advance())
-                //    },
-                //    (None,None) => {
-                //        out1.advance().append(out2.advance())
-                //    }
-                //}
             }
         }
     }
