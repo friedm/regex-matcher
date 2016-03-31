@@ -2,8 +2,25 @@ use ::nfa::{State, Edge, NFA};
 
 #[cfg(test)] mod spec;
 
+#[derive(Clone)]
+struct PotentialMatch {
+    current_state: State,
+    offset: usize,
+    remaining_text: String
+}
+
+impl PotentialMatch {
+    pub fn new(state: State, offset: usize, remaining_text: String) -> PotentialMatch {
+        PotentialMatch {
+            current_state: state,
+            offset: offset,
+            remaining_text: remaining_text
+        }
+    }
+}
+
 pub struct Matcher {
-    states: Vec<(State, usize, String)>,
+    states: Vec<PotentialMatch>,
     nfa: NFA
 }
 
@@ -14,7 +31,7 @@ impl Matcher {
         let states = match start {
             None => Vec::new(),
             Some(state) => vec![
-               (state, 0, text.to_owned())
+               PotentialMatch::new(state, 0, text.to_owned())
             ]
         };
 
@@ -43,8 +60,12 @@ impl Matcher {
         let mut new_states = Vec::new();
 
         for state in self.states.clone() {
-            let (ref state, offset, ref remaining_text) = state;
-            let next_step = Self::step(state.clone(), offset, remaining_text);
+            let PotentialMatch{
+                ref current_state, 
+                offset, 
+                ref remaining_text
+            } = state;
+            let next_step = Self::step(current_state.clone(), offset, remaining_text);
 
             match next_step {
                 None => return true,
@@ -57,7 +78,7 @@ impl Matcher {
         false
     }
 
-    fn step(state: State, offset: usize, remaining_text: &str) -> Option<(State, usize, String)> {
+    fn step(state: State, offset: usize, remaining_text: &str) -> Option<PotentialMatch> {
         match state.clone() {
             State::State{edge, out} => {
                 match edge {
@@ -79,7 +100,7 @@ impl Matcher {
         }
     }
 
-    fn next_state(edge: Edge, offset: usize, remaining_text: &str) -> Option<(State, usize, String)> {
+    fn next_state(edge: Edge, offset: usize, remaining_text: &str) -> Option<PotentialMatch> {
 
         match edge {
             Edge::End => None,
