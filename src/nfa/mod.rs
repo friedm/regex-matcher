@@ -16,6 +16,15 @@ pub enum Edge {
     End
 }
 
+impl Edge {
+    pub fn is_end(&self) -> bool {
+        match self {
+            &Edge::End => true,
+            _ => false
+        }
+    }
+}
+
 impl State {
     pub fn state(edge: Option<char>, out: Edge) -> State {
         State::State{edge: edge, out: out}
