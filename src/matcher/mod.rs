@@ -80,38 +80,7 @@ impl PotentialMatch {
     }
 
     pub fn is_match(&self) -> bool {
-        match self.current_state {
-            Some(ref current_state) => {
-                match current_state {
-                    &State::State{ref edge, ref out} => {
-                        out.is_end() && self.remaining_text.is_empty()
-                    },
-                    &State::Split{ref s1, ref out1, ref s2, ref out2} => {
-                        (out1.is_end() || out2.is_end()) &&
-                            self.remaining_text.is_empty()
-                    }
-                }
-            },
-            None => true
-        }
-    }
-
-    pub fn is_fail(&self) -> bool {
-        match self.current_state {
-            Some(ref current_state) => {
-                match current_state {
-                    &State::State{ref edge, ref out} => {
-                        self.remaining_text.is_empty() &&
-                            !out.is_end()
-                    },
-                    &State::Split{ref s1, ref out1, ref s2, ref out2} => {
-                        self.remaining_text.is_empty() && 
-                            !(out1.is_end() || out2.is_end())
-                    }
-                }
-            },
-            None => false
-        }
+        self.current_state.is_none()
     }
 
     pub fn new(state: Option<State>, remaining_text: &str) -> PotentialMatch {
@@ -154,10 +123,6 @@ impl Matcher {
                 let new_states = state.advance(&self.nfa);
 
                 for s in new_states {
-                    if s.is_fail() {
-                        continue;
-                    }
-
                     if s.is_match() {
                         return true;
                     } else {
