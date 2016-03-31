@@ -23,7 +23,7 @@ fn single_char_nfa_matches() {
         State::state(Some('a'), Edge::End)
     ]);
 
+    assert!(Matcher::new(nfa.clone(), "a").run());
     assert!(!Matcher::new(nfa.clone(), "").run());
-    assert!(Matcher::new(nfa, "a").run());
 }
 
