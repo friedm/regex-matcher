@@ -32,6 +32,6 @@ fn complex_examples() {
     assert_eq!(Some(4), r.match_offset("abcb"));
     assert_eq!(Some(4), r.match_offset("accb"));
     assert_eq!(None, r.match_offset("zzzb"));
-    assert_eq!(Some(8), r.match_offset("abcbaccb"));
+    assert_eq!(Some(8), r.match_offset("abcbabcb"));
 }
 

@@ -162,7 +162,6 @@ impl Matcher {
         ];
 
         while states.len() > 0 {
-
             let state = states.pop().unwrap();
 
             if state.is_match() {

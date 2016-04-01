@@ -65,7 +65,6 @@ impl FromStr for Expr {
                     pop_infix_operator(top, &mut output_queue);
                     top = operator_stack.pop().unwrap();
                 }
-                last_was_char = false;
 
             } else if BINARY_OPERATORS.contains(&c) {
 

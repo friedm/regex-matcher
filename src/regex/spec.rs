@@ -66,13 +66,26 @@ fn matches_zero_or_more() {
     assert!(regex.is_match("ab"));
     assert!(regex.is_match("a"));
     assert!(!regex.is_match("bb"));
+
+    let regex = Regex::from("ab*c").unwrap();
+    assert!(!regex.is_match("ababc"));
+    assert!(!regex.is_match("aabc"));
 }
 
 #[test]
-#[ignore]
 fn matches_zero_or_more_subexpr() {
     let r = Regex::from("(ab)*").unwrap();
     assert_eq!(Some(0), r.match_offset(""));
+    assert_eq!(Some(2), r.match_offset("ab"));
+    assert_eq!(Some(4), r.match_offset("abab"));
+    assert_eq!(Some(8), r.match_offset("abababab"));
+
+    let r = Regex::from("(ab|bc)*").unwrap();
+    assert_eq!(Some(0), r.match_offset(""));
+    assert_eq!(Some(2), r.match_offset("ab"));
+    assert_eq!(Some(2), r.match_offset("bc"));
+    assert_eq!(Some(4), r.match_offset("abab"));
+    assert_eq!(Some(6), r.match_offset("abbcab"));
 }
 
 #[test]

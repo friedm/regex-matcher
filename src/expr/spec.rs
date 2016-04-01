@@ -16,6 +16,18 @@ fn parse_sequence() {
     assert_eq!(Expr::sequence(Expr::Single('a'),
                               Expr::Single('b')),
                "ab".parse::<Expr>().unwrap());
+
+    assert_eq!(Expr::sequence(Expr::Single('a'),
+                              Expr::Single('b')),
+               "(a)b".parse::<Expr>().unwrap());
+
+    assert_eq!(Expr::sequence(Expr::or(Expr::Single('a'),Expr::Single('b')),
+                              Expr::Single('b')),
+                "(a|b)b".parse::<Expr>().unwrap());
+
+    assert_eq!(Expr::sequence(Expr::Single('a'),
+                              Expr::Single('b')),
+               "((a)b)".parse::<Expr>().unwrap());
 }
 
 #[test]
@@ -107,5 +119,23 @@ fn parse_dot() {
 #[test]
 fn parse_parens_with_kleene_star() {
     "(ab)*".parse::<Expr>().unwrap();
+}
+
+#[test]
+fn parse_complex() {
+    assert_eq!(Expr::one_or_more(
+            Expr::sequence(
+            Expr::Single('a'),
+            Expr::Single('b'))),
+            "((a)b)+".parse::<Expr>().unwrap());
+
+    assert_eq!(
+        Expr::one_or_more(
+            Expr::sequence(
+                Expr::or(
+                    Expr::Single('a'),
+                    Expr::Single('b')),
+                Expr::Single('b'))),
+            "((a|b)b)+".parse::<Expr>().unwrap());
 }
 
