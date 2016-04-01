@@ -18,51 +18,61 @@ impl PotentialMatch {
 
         match current_state {
             State::State{ref edge, ref out} => {
-                match edge {
-                    &Some(val) => {
-                        if self.remaining_text.is_empty() {
-                            return vec![];
-                        }
-
-                        if val == self.remaining_text.as_bytes()[0] as char {
-                            // can consume char and advance along edge
-                            match out {
-                                &Edge::End => {
-                                    vec![PotentialMatch::new(None, 
-                                                             &self.remaining_text[1..])]
-                                },
-                                &Edge::Id(id) => {
-                                    vec![PotentialMatch::new(nfa.get_state(id),
-                                                             &self.remaining_text[1..])]
-                                },
-                                _ => panic!()
-                            }
-                        } else { // cannot proceed
-                            vec![]
-                        }
-                    },
-                    &None => {
-                        // can advance along empty edge
-                        match out {
-                            &Edge::End => {
-                                vec![PotentialMatch::new(None,
-                                                         &self.remaining_text)]
-                            },
-                            &Edge::Id(id) => {
-                                vec![PotentialMatch::new(
-                                        nfa.get_state(id),
-                                        &self.remaining_text)]
-                            },
-                            _ => panic!()
-                        }
-                    }
-                }
+                self.next(nfa, edge, out)
             },
             State::Split{ref s1, ref out1, ref s2, ref out2} => {
-                vec![]
+                let mut s1_next = self.next(nfa, s1, out1);
+                let mut s2_next = self.next(nfa, s2, out2);
+                s1_next.append(&mut s2_next);
+                s1_next
             }
         }
     }
+
+    fn next(&self, nfa: &NFA, edge: &Option<char>, out: &Edge) -> Vec<PotentialMatch> {
+        match edge {
+            &Some(val) => {
+                if self.remaining_text.is_empty() {
+                    // no character to consume, this potential match cannot continue
+                    return vec![];
+                }
+
+                if val == self.remaining_text.as_bytes()[0] as char {
+                    // can consume char and advance along edge
+                    match out {
+                        &Edge::End => {
+                            vec![PotentialMatch::new(None, 
+                                                     &self.remaining_text[1..])]
+                        },
+                        &Edge::Id(id) => {
+                            vec![PotentialMatch::new(nfa.get_state(id),
+                            &self.remaining_text[1..])]
+                        },
+                        _ => panic!()
+                    }
+                } else { // cannot proceed
+                    vec![]
+                }
+            },
+            &None => {
+                // can advance along empty edge
+                match out {
+                    &Edge::End => {
+                        vec![PotentialMatch::new(None,
+                                                 &self.remaining_text)]
+                    },
+                    &Edge::Id(id) => {
+                        vec![PotentialMatch::new(
+                            nfa.get_state(id),
+                            &self.remaining_text)]
+                    },
+                    _ => panic!()
+                }
+            }
+        }
+
+    }
+
 
     pub fn is_match(&self) -> bool {
         self.current_state.is_none()
