@@ -72,3 +72,30 @@ fn build_more_complex_one_or_more() {
     assert_eq!(0, nfa.start);
 }
 
+#[test]
+fn build_zero_or_more() {
+    let nfa = NFA::from_expr(
+        &Expr::zero_or_more(Expr::Single('a')));
+    // 'a*'
+    
+    assert_eq!(vec![
+        State::state(Some('a'), Edge::Id(1)),
+        State::split(None, Edge::Id(0), None, Edge::End)
+    ], nfa.states);
+    assert_eq!(1, nfa.start);
+}
+
+#[test]
+fn build_more_complex_zero_or_more() {
+    let nfa = NFA::from_expr(&"b*cd*".parse::<Expr>().unwrap());
+
+    assert_eq!(vec![
+        State::state(Some('b'), Edge::Id(1)), // 0
+        State::split(None, Edge::Id(0), None, Edge::Id(2)), // 1
+        State::state(Some('c'), Edge::Id(4)), // 2
+        State::state(Some('d'), Edge::Id(4)), // 3
+        State::split(None, Edge::Id(3), None, Edge::End)// 4
+    ], nfa.states);
+    assert_eq!(1, nfa.start);
+}
+

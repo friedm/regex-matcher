@@ -8,11 +8,11 @@ test match ordering
 get specific match range
 `.`
 char class
-`*`
 text begin, end
 escape metachars
 
-refactor
+refactor split
+refactor other
 
 bench test
 

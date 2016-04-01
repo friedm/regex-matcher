@@ -17,14 +17,6 @@ fn returns_err_on_invalid_regex() {
 }
 
 #[test]
-#[ignore]
-fn matches() {
-    let regex = Regex::from("a").unwrap();
-    assert_eq!(true, regex.is_match("baaa"));
-}
-
-#[test]
-#[ignore]
 fn matches_optionally() {
     assert!(Regex::from("a?").unwrap().is_match("b"));
 }

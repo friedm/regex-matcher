@@ -120,6 +120,16 @@ impl NFA {
 
                 expr_id
             },
+            &Expr::ZeroOrMore(ref expr) => {
+                let expr_id = self.build_expr(expr);
+                let s = State::split(None, Edge::Id(expr_id), None, Edge::Detached);
+
+                self.states.push(s);
+                let split_id = self.states.len() - 1;
+                self.update_outputs(expr_id, Edge::Id(split_id));
+
+                split_id
+            }
             _ => panic!()
         };
 

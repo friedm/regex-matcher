@@ -1,9 +1,13 @@
 use super::Regex;
 
 #[test]
-fn matches_simple_examples() {
+fn only_matches_at_start_of_text() {
     assert!(!Regex::from("ab?c").unwrap().is_match("zac"));
     assert!(!Regex::from("ab?c").unwrap().is_match("abbbc"));
+}
+
+#[test]
+fn matches_simple_examples() {
     assert!(Regex::from("a?").unwrap().is_match(""));
     assert!(Regex::from("a+").unwrap().is_match("a"));
     assert!(Regex::from("ab+").unwrap().is_match("abbbb"));
@@ -14,6 +18,18 @@ fn does_not_match() {
     assert!(!Regex::from("ab?c").unwrap().is_match("z"));
     assert!(!Regex::from("a+").unwrap().is_match(""));
     assert!(!Regex::from("ab+").unwrap().is_match("bbbb"));
+}
+
+#[test]
+fn matches_with_kleene_star() {
+    let regex = Regex::from("ab*c*d").unwrap();
+    assert!(regex.is_match("abbbbcd"));
+    assert!(regex.is_match("acd"));
+    assert!(regex.is_match("ad"));
+    assert!(regex.is_match("acccd"));
+
+    assert!(!regex.is_match("bbbcccd"));
+    assert!(!regex.is_match("abbbccc"));
 }
 
 #[test]
