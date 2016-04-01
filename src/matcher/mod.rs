@@ -18,17 +18,27 @@ impl PotentialMatch {
 
         match current_state {
             State::State{ref edge, ref out} => {
-                vec![self.next_for_edge(nfa, edge, out)]
+
+                let mut result = Vec::new();
+                Self::push_option(
+                    &mut result,
+                    self.next_for_edge(nfa, edge, out));
+                result
             },
             State::Split{ref s1, ref out1, ref s2, ref out2} => {
                 let mut s1_next = self.next_for_edge(nfa, s1, out1);
                 let mut s2_next = self.next_for_edge(nfa, s2, out2);
-                vec![s1_next, s2_next]
+
+                let mut result = Vec::new();
+                Self::push_option(&mut result, s1_next);
+                Self::push_option(&mut result, s2_next);
+
+                result
             }
         }
     }
 
-    fn next(&self, nfa: &NFA, edge: &Option<char>, out: &Edge) -> Option<PotentialMatch> {
+    fn next_for_edge(&self, nfa: &NFA, edge: &Option<char>, out: &Edge) -> Option<PotentialMatch> {
         match edge {
             &Some(val) => {
                 if self.remaining_text.is_empty() {
@@ -71,6 +81,13 @@ impl PotentialMatch {
             }
         }
 
+    }
+
+    pub fn push_option<T>(vec: &mut Vec<T>, item: Option<T>) {
+        match item {
+            Some(item) => vec.push(item),
+            None => ()
+        }
     }
 
 
