@@ -100,6 +100,12 @@ fn build_more_complex_zero_or_more() {
 }
 
 #[test]
+fn build_doesnt_infinite_loop() {
+    let nfa = NFA::from_expr(&"(ab)*".parse::<Expr>().unwrap());
+    let nfa = NFA::from_expr(&"..+.".parse::<Expr>().unwrap());
+}
+
+#[test]
 fn build_or() {
     let nfa = NFA::from_expr(
         &Expr::or(Expr::Single('a'), Expr::Single('b')));

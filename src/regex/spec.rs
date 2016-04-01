@@ -69,6 +69,22 @@ fn matches_zero_or_more() {
 }
 
 #[test]
+#[ignore]
+fn matches_zero_or_more_subexpr() {
+    let r = Regex::from("(ab)*").unwrap();
+    assert_eq!(Some(0), r.match_offset(""));
+}
+
+#[test]
+fn matches_or() {
+    let r = Regex::from("(a|bc)").unwrap();
+    assert_eq!(Some(2), r.match_offset("bc"));
+    assert_eq!(Some(1), r.match_offset("a"));
+    assert_eq!(None, r.match_offset("c"));
+    assert_eq!(None, r.match_offset(""));
+}
+
+#[test]
 fn optional_metachar_is_greedy() {
     assert_eq!(Some(1), Regex::from(".?").unwrap().match_offset("a"));
 }

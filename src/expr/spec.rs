@@ -104,3 +104,8 @@ fn parse_dot() {
                ".".parse::<Expr>().unwrap());
 }
 
+#[test]
+fn parse_parens_with_kleene_star() {
+    "(ab)*".parse::<Expr>().unwrap();
+}
+

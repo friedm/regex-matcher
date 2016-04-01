@@ -30,5 +30,8 @@ fn complex_examples() {
 
     let r = Regex::from("((abc|acc)b)+").unwrap();
     assert_eq!(Some(4), r.match_offset("abcb"));
+    assert_eq!(Some(4), r.match_offset("accb"));
+    assert_eq!(None, r.match_offset("zzzb"));
+    assert_eq!(Some(8), r.match_offset("abcbaccb"));
 }
 

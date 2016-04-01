@@ -198,35 +198,39 @@ impl NFA {
     }
 
     fn update_outputs(&mut self, start_id: usize, new_edge: Edge) {
-        self.update_outputs_rec(start_id, start_id, new_edge);
+        self.update_outputs_rec(start_id, &mut vec![start_id], new_edge);
     }
 
-    fn update_outputs_rec(&mut self, start_id: usize, initial_id: usize, new_edge: Edge) {
+    fn update_outputs_rec(&mut self, start_id: usize, visited: &mut Vec<usize>, new_edge: Edge) {
         let state = self.states[start_id].clone();
         let state = match state {
             State::State{ref condition, ref out} => {
                 State::state(condition.clone(), 
-                             self.replace_edge(out.clone(), new_edge, start_id)
+                             self.replace_edge(out.clone(), new_edge, visited)
 )
             },
             State::Split{ref c1, ref out1, ref c2, ref out2} => {
+                let edge1 = self.replace_edge(out1.clone(), new_edge.clone(), visited);
+                let edge2 = self.replace_edge(out2.clone(), new_edge.clone(), visited);
+
                 State::split(c1.clone(),
-                             self.replace_edge(out1.clone(), new_edge.clone(), initial_id),
+                             edge1,
                              c2.clone(),
-                             self.replace_edge(out2.clone(), new_edge.clone(), initial_id))
+                             edge2)
             }
         };
         self.states[start_id] = state;
     }
 
-    fn replace_edge(&mut self, edge: Edge, replacement: Edge, start_id: usize) -> Edge {
+    fn replace_edge(&mut self, edge: Edge, replacement: Edge, visited: &mut Vec<usize>) -> Edge {
         match &edge {
             &Edge::Detached => {
                 replacement
             },
             &Edge::Id(id) => {
-                if id != start_id { // don't recurse further
-                    self.update_outputs_rec(id, start_id, replacement);
+                if !visited.contains(&id) { // don't recurse further
+                    visited.push(id);
+                    self.update_outputs_rec(id, visited, replacement);
                 }
 
                 edge
