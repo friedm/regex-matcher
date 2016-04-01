@@ -100,6 +100,19 @@ fn build_more_complex_zero_or_more() {
 }
 
 #[test]
+fn build_or() {
+    let nfa = NFA::from_expr(
+        &Expr::or(Expr::Single('a'), Expr::Single('b')));
+
+    assert_eq!(vec![
+        State::state(ConditionChar::one('a'), Edge::End),
+        State::state(ConditionChar::one('b'), Edge::End),
+        State::split(ConditionChar::None, Edge::Id(0), ConditionChar::None, Edge::Id(1))
+    ], nfa.states);
+    assert_eq!(2, nfa.start);
+}
+
+#[test]
 fn build_any() {
     let nfa = NFA::from_expr(&Expr::Any);
 

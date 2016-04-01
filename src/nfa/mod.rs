@@ -179,7 +179,19 @@ impl NFA {
 
                 split_id
             },
-            _ => panic!()
+            &Expr::Or(ref expr1, ref expr2) => {
+                let expr1_id = self.build_expr(expr1);
+                let expr2_id = self.build_expr(expr2);
+
+                let s = State::split(ConditionChar::None, 
+                                     Edge::Id(expr1_id),
+                                     ConditionChar::None, 
+                                     Edge::Id(expr2_id));
+
+                self.states.push(s);
+
+                self.states.len() - 1
+            }
         };
 
         id
