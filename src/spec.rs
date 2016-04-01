@@ -21,3 +21,12 @@ fn matches_optionally() {
     assert!(Regex::from("a?").unwrap().is_match("b"));
 }
 
+#[test]
+fn complex_examples() {
+    let r = Regex::from("..+.").unwrap();
+    assert_eq!(Some(3), r.match_offset("abc"));
+    assert_eq!(Some(5), r.match_offset("ababc"));
+    assert_eq!(None, r.match_offset("ac"));
+    assert!(false);
+}
+

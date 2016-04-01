@@ -35,15 +35,6 @@ pub enum Edge {
     End
 }
 
-impl Edge {
-    pub fn is_end(&self) -> bool {
-        match self {
-            &Edge::End => true,
-            _ => false
-        }
-    }
-}
-
 impl State {
     pub fn state(condition: ConditionChar, out: Edge) -> State {
         State::State{condition: condition, out: out}
@@ -143,14 +134,12 @@ impl NFA {
     fn build_expr(&mut self, expr: &Expr) -> usize {
         let id = match expr {
             &Expr::Any => {
-                let new_state_id = self.states.len();
                 let s = State::state(ConditionChar::Any, Edge::Detached);
                 self.states.push(s);
 
                 self.states.len() - 1
             },
             &Expr::Single(c) => {
-                let new_state_id = self.states.len();
                 let s = State::state(ConditionChar::one(c), Edge::Detached);
                 self.states.push(s);
 

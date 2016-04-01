@@ -26,8 +26,8 @@ impl PotentialMatch {
                 result
             },
             State::Split{ref c1, ref out1, ref c2, ref out2} => {
-                let mut c1_next = self.next_for_edge(nfa, c1, out1);
-                let mut c2_next = self.next_for_edge(nfa, c2, out2);
+                let c1_next = self.next_for_edge(nfa, c1, out1);
+                let c2_next = self.next_for_edge(nfa, c2, out2);
 
                 let mut result = Vec::new();
                 Self::push_option(&mut result, c1_next);

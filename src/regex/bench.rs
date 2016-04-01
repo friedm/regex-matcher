@@ -18,7 +18,7 @@ fn bench_12(b: &mut Bencher) {
 fn bench_difficult_regex(b: &mut Bencher, size: usize) {
     // 'a?a?aa' maching text "aa"
 
-    let mut text: String = iter::repeat("a").take(size).collect();
+    let text: String = iter::repeat("a").take(size).collect();
     let mut regex: String = iter::repeat("a?").take(size).collect();
     regex.push_str(&text.clone());
 

@@ -3,9 +3,9 @@ use std::collections::vec_deque::VecDeque;
 
 #[cfg(test)] mod spec;
 
-static unary_postfix_operators: &'static [char] = &['?', '*', '+'];
-static binary_operators: &'static [char] = &['|'];
-static special_chars: &'static [char] = &['.'];
+static UNARY_POSTFIX_OPERATORS: &'static [char] = &['?', '*', '+'];
+static BINARY_OPERATORS: &'static [char] = &['|'];
+static SPECIAL_CHARS: &'static [char] = &['.'];
 
 #[derive(PartialEq, Debug)]
 pub enum Expr {
@@ -67,7 +67,7 @@ impl FromStr for Expr {
                 }
                 last_was_char = false;
 
-            } else if binary_operators.contains(&c) {
+            } else if BINARY_OPERATORS.contains(&c) {
 
                 while !operator_stack.is_empty() {
                     if operator_stack.last().unwrap() == &'(' { break; } // parens have higher prescedence than any other operator
@@ -76,12 +76,12 @@ impl FromStr for Expr {
                 operator_stack.push(c);
                 last_was_char = false;
 
-            } else if unary_postfix_operators.contains(&c) {
+            } else if UNARY_POSTFIX_OPERATORS.contains(&c) {
 
                 apply_postfix_operator(c, &mut output_queue);
                 last_was_char = false;
 
-            } else if special_chars.contains(&c) {
+            } else if SPECIAL_CHARS.contains(&c) {
 
                 if !output_queue.is_empty() && last_was_char {
                     operator_stack.push('@'); // "sequence" operator
