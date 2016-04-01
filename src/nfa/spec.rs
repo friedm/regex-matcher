@@ -169,3 +169,12 @@ fn prioritizes_split() {
     ])));
 }
 
+#[test]
+fn build_char_class() {
+    let nfa = NFA::from_expr(&Expr::Class(vec!['a','b']));
+
+    assert_eq!(vec![
+        State::state(ConditionChar::class(vec!['a','b']), Edge::End)
+    ], nfa.states);
+}
+

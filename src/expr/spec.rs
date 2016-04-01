@@ -139,3 +139,18 @@ fn parse_complex() {
             "((a|b)b)+".parse::<Expr>().unwrap());
 }
 
+#[test]
+fn parse_char_class() {
+    assert_eq!(Expr::Class(vec!['a','b','c']),
+        "[abc]".parse::<Expr>().unwrap());
+
+    assert_eq!(Expr::sequence(
+            Expr::Single('a'),
+            Expr::Class(vec!['a','b'])),
+        "a[ab]".parse::<Expr>().unwrap());
+
+    assert_eq!(Expr::one_or_more(
+            Expr::Class(vec!['a','b'])),
+        "[ab]+".parse::<Expr>().unwrap());
+}
+

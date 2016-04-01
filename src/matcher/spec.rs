@@ -175,3 +175,14 @@ fn null_edge_matches() {
     assert!(!Matcher::new(nfa.clone(), "").run().is_some());
 }
 
+#[test]
+fn char_class_matches() {
+    let nfa = NFA::from_states(vec![
+        State::state(ConditionChar::class(vec!['a', 'b']),
+           Edge::End)]);
+
+    assert!(Matcher::new(nfa.clone(), "a").run().is_some());
+    assert!(Matcher::new(nfa, "b").run().is_some());
+}
+
+

@@ -1,8 +1,10 @@
+use std::collections::HashSet;
+
 use ::nfa::{State, Edge, NFA, ConditionChar};
 
 #[cfg(test)] mod spec;
 
-#[derive(Clone,PartialEq,Debug)]
+#[derive(Clone,PartialEq,Eq,Hash,Debug)]
 struct PotentialMatch {
     current_state: Option<State>,
     text: Vec<u8>
@@ -99,6 +101,28 @@ impl PotentialMatch {
                     },
                     _ => panic!()
                 }
+            },
+            &ConditionChar::Class(ref chars) => {
+                if self.text.is_empty() {
+                    // no character to consume, this potential match cannot continue
+                    return None;
+                }
+
+                if chars.contains(&self.text[0]) {
+                    // can consume char and advance along edge
+                    match out {
+                        &Edge::End => {
+                            Some(self.with_state_and_increment(None))
+                        },
+                        &Edge::Id(id) => {
+                            Some(self.with_state_and_increment(nfa.get_state(id)))
+                        },
+                        _ => panic!()
+                    }
+                } else { 
+                    // potential match cannot proceed, mismatched character
+                    None
+                }
             }
         }
     }
@@ -156,10 +180,14 @@ impl Matcher {
             return Some(0);
         }
 
-        let mut states = vec![
-            PotentialMatch::new(Some(self.nfa.get_start().unwrap()),
-                                &self.text)
-        ];
+        let first_potential_match = PotentialMatch::new(
+            Some(self.nfa.get_start().unwrap()),
+                 &self.text);
+
+
+        let mut set = HashSet::new();
+        set.insert(first_potential_match.clone());
+        let mut states = vec![first_potential_match];
 
         while states.len() > 0 {
             let state = states.pop().unwrap();
@@ -173,7 +201,13 @@ impl Matcher {
             // states are in order of greediness
             new_states.reverse(); 
 
-            states.append(&mut new_states);
+            for state in new_states {
+
+                if !set.contains(&state) {
+                    states.push(state.clone());
+                    set.insert(state);
+                }
+            }
         }
 
         None

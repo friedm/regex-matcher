@@ -5,30 +5,41 @@ use ::expr::Expr;
 #[cfg(test)] mod spec;
 
 
-#[derive(PartialEq,Debug,Clone)]
+#[derive(PartialEq,Debug,Clone,Eq,Hash)]
 pub enum State {
     State{condition: ConditionChar, out: Edge},
     Split{c1: ConditionChar, out1: Edge, c2: ConditionChar, out2: Edge}
 }
 
-#[derive(PartialEq,Debug,Clone)]
+#[derive(PartialEq,Debug,Clone,Eq,Hash)]
 pub enum ConditionChar {
     One(u8), // ascii encoded char
+    Class(Vec<u8>), // list of valid ascii encoded chars
     Any,
     None
 }
 
 impl ConditionChar {
     pub fn one(c: char) -> ConditionChar {
+        ConditionChar::One(Self::to_ascii(c))
+    }
+
+    fn to_ascii(c: char) -> u8 {
         let mut buf = [0; 1];
         match c.encode_utf8(&mut buf) {
-            Some(1) => ConditionChar::One(buf[0]),
-            _ => panic!()
+            Some(1) => buf[0],
+            _ => panic!("attempted to create condition with non-ascii char")
         }
+    }
+
+    pub fn class(chars: Vec<char>) -> ConditionChar {
+        let ascii_bytes = chars.iter().map(|&c| Self::to_ascii(c)).collect::<Vec<_>>();
+
+        ConditionChar::Class(ascii_bytes)
     }
 }
 
-#[derive(PartialEq,Debug,Clone)]
+#[derive(PartialEq,Debug,Clone,Eq,Hash)]
 pub enum Edge {
     Id(usize),
     Detached,
@@ -74,7 +85,8 @@ impl State {
                     },
                     _ => usize::max_value() // state terminates with no cost
                 }
-            }
+            },
+            &ConditionChar::Class(ref chars) => 0
         }
     }
 }
@@ -141,6 +153,13 @@ impl NFA {
             },
             &Expr::Single(c) => {
                 let s = State::state(ConditionChar::one(c), Edge::Detached);
+                self.states.push(s);
+
+                self.states.len() - 1
+            },
+            &Expr::Class(ref chars) => {
+                let s = State::state(ConditionChar::class(chars.clone()),
+                                     Edge::Detached);
                 self.states.push(s);
 
                 self.states.len() - 1

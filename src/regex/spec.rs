@@ -130,3 +130,18 @@ fn dot_does_not_match_newline() {
     assert!(!regex.is_match("\n"));
 }
 
+#[test]
+fn char_class_matches() {
+    let regex = Regex::from("[abc]").unwrap();
+    assert!(regex.is_match("a"));
+    assert!(regex.is_match("b"));
+    assert!(regex.is_match("c"));
+    assert!(!regex.is_match("d"));
+
+    let regex = Regex::from("([ab]d)+").unwrap();
+    assert!(!regex.is_match(""));
+    assert!(!regex.is_match("aad"));
+    assert!(regex.is_match("adad"));
+    assert!(regex.is_match("adbd"));
+}
+

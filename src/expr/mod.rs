@@ -10,6 +10,7 @@ static SPECIAL_CHARS: &'static [char] = &['.'];
 #[derive(PartialEq, Debug)]
 pub enum Expr {
     Single(char),
+    Class(Vec<char>),
     Any,
     Sequence(Box<Expr>, Box<Expr>),
     Or(Box<Expr>, Box<Expr>),
@@ -48,8 +49,26 @@ impl FromStr for Expr {
         let mut output_queue = VecDeque::<Expr>::new();
         let mut operator_stack = Vec::<char>::new();
         let mut last_was_char = false;
+        let mut in_char_class = false;
 
-        for c in s.chars() {
+        let mut current_class = Vec::new();
+
+        let mut chars = s.chars();
+        while chars.clone().count() > 0 {
+            let mut c = chars.next().unwrap();
+
+            if in_char_class {
+                if c == ']' {
+                    output_queue.push_back(Expr::Class(current_class));
+                    current_class = Vec::new();
+                    in_char_class = false;
+                } else {
+                    current_class.push(c);
+                }
+
+                continue;
+            }
+
             if c == '(' {
 
                 if !output_queue.is_empty() && last_was_char {
@@ -66,6 +85,11 @@ impl FromStr for Expr {
                     top = operator_stack.pop().unwrap();
                 }
 
+            } else if c == '[' {
+                last_was_char = false;
+                in_char_class = true;
+            } else if c == ']' {
+                panic!();
             } else if BINARY_OPERATORS.contains(&c) {
 
                 while !operator_stack.is_empty() {

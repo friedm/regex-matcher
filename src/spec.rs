@@ -1,4 +1,5 @@
 use super::{Regex};
+use std::iter;
 
 #[test]
 fn creates_new() {
@@ -33,5 +34,12 @@ fn complex_examples() {
     assert_eq!(Some(4), r.match_offset("accb"));
     assert_eq!(None, r.match_offset("zzzb"));
     assert_eq!(Some(8), r.match_offset("abcbabcb"));
+}
+
+#[test]
+fn test() {
+    let r = Regex::from("(a|(aa))+b").unwrap();
+
+    //assert!(!m.match_offset("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"));
 }
 
