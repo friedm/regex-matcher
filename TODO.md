@@ -4,16 +4,12 @@ refactor split
 refactor matcher::next_for_edge
 review code
 
-complicated test cases
+## ISSUES
 
-resolve runtime issues
-
-test error cases  
-test `@` case  
-test empty regex case  
-
-disallow non-ascii strings
-char class  
-text begin, end  
-escape metachars  
+* does not perform as expected
+* will panic on non-ascii regexes or texts
+* cannot properly parse regexes containing `@` 
+* cannot create empty regex
+* other error/edge cases 
+* missing char classes, `^`, `$`, ability to escape metachars
 
