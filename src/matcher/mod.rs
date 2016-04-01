@@ -17,29 +17,29 @@ impl PotentialMatch {
         let current_state = self.current_state.clone().unwrap();
 
         match current_state {
-            State::State{ref edge, ref out} => {
+            State::State{ref condition, ref out} => {
 
                 let mut result = Vec::new();
                 Self::push_option(
                     &mut result,
-                    self.next_for_edge(nfa, edge, out));
+                    self.next_for_edge(nfa, condition, out));
                 result
             },
-            State::Split{ref s1, ref out1, ref s2, ref out2} => {
-                let mut s1_next = self.next_for_edge(nfa, s1, out1);
-                let mut s2_next = self.next_for_edge(nfa, s2, out2);
+            State::Split{ref c1, ref out1, ref c2, ref out2} => {
+                let mut c1_next = self.next_for_edge(nfa, c1, out1);
+                let mut c2_next = self.next_for_edge(nfa, c2, out2);
 
                 let mut result = Vec::new();
-                Self::push_option(&mut result, s1_next);
-                Self::push_option(&mut result, s2_next);
+                Self::push_option(&mut result, c1_next);
+                Self::push_option(&mut result, c2_next);
 
                 result
             }
         }
     }
 
-    fn next_for_edge(&self, nfa: &NFA, edge: &Option<char>, out: &Edge) -> Option<PotentialMatch> {
-        match edge {
+    fn next_for_edge(&self, nfa: &NFA, condition: &Option<char>, out: &Edge) -> Option<PotentialMatch> {
+        match condition {
             &Some(val) => {
                 if self.text.is_empty() {
                     // no character to consume, this potential match cannot continue
@@ -83,7 +83,6 @@ impl PotentialMatch {
             None => ()
         }
     }
-
 
     pub fn is_match(&self) -> bool {
         self.current_state.is_none()

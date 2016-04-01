@@ -98,3 +98,9 @@ fn parse_parens_with_or() {
                "(a|b)".parse::<Expr>().unwrap());
 }
 
+#[test]
+fn parse_dot() {
+    assert_eq!(Expr::Any,
+               ".".parse::<Expr>().unwrap());
+}
+

@@ -3,9 +3,14 @@ use std::collections::vec_deque::VecDeque;
 
 #[cfg(test)] mod spec;
 
+static unary_postfix_operators: &'static [char] = &['?', '*', '+'];
+static binary_operators: &'static [char] = &['|'];
+static special_chars: &'static [char] = &['.'];
+
 #[derive(PartialEq, Debug)]
 pub enum Expr {
     Single(char),
+    Any,
     Sequence(Box<Expr>, Box<Expr>),
     Or(Box<Expr>, Box<Expr>),
     Optional(Box<Expr>),
@@ -46,34 +51,52 @@ impl FromStr for Expr {
 
         for c in s.chars() {
             if c == '(' {
+
                 if !output_queue.is_empty() && last_was_char {
                     operator_stack.push('@'); // "sequence" operator
                 }
                 operator_stack.push(c);
                 last_was_char = false;
+
             } else if c == ')' {
+
                 let mut top = operator_stack.pop().expect("mismatched parens");
                 while top != '(' {
                     pop_infix_operator(top, &mut output_queue);
                     top = operator_stack.pop().unwrap();
                 }
                 last_was_char = false;
+
             } else if binary_operators.contains(&c) {
+
                 while !operator_stack.is_empty() {
                     if operator_stack.last().unwrap() == &'(' { break; } // parens have higher prescedence than any other operator
                     pop_infix_operator(operator_stack.pop().unwrap(), &mut output_queue);
                 }
                 operator_stack.push(c);
                 last_was_char = false;
+
             } else if unary_postfix_operators.contains(&c) {
+
                 apply_postfix_operator(c, &mut output_queue);
                 last_was_char = false;
-            } else {
+
+            } else if special_chars.contains(&c) {
+
+                if !output_queue.is_empty() && last_was_char {
+                    operator_stack.push('@'); // "sequence" operator
+                }
+                output_queue.push_back(Expr::Any);
+                last_was_char = true;
+
+            } else { // literal char
+
                 if !output_queue.is_empty() && last_was_char {
                     operator_stack.push('@'); // "sequence" operator
                 }
                 output_queue.push_back(Expr::Single(c));
                 last_was_char = true;
+
             }
         }
 
@@ -93,9 +116,6 @@ impl FromStr for Expr {
         output_queue.pop_front().ok_or("output queue empty".to_owned())
     }
 }
-
-static unary_postfix_operators: &'static [char] = &['?', '*', '+'];
-static binary_operators: &'static [char] = &['|'];
 
 fn pop_infix_operator(operator: char, output_queue: &mut VecDeque<Expr>) {
     match operator {
