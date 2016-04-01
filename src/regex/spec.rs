@@ -1,17 +1,15 @@
 use super::Regex;
 
 #[test]
-#[ignore]
 fn matches_simple_examples() {
-    assert!(Regex::from("ab?c").unwrap().is_match("zac"));
-    assert!(Regex::from("ab?c").unwrap().is_match("abbbc"));
+    assert!(!Regex::from("ab?c").unwrap().is_match("zac"));
+    assert!(!Regex::from("ab?c").unwrap().is_match("abbbc"));
     assert!(Regex::from("a?").unwrap().is_match(""));
     assert!(Regex::from("a+").unwrap().is_match("a"));
     assert!(Regex::from("ab+").unwrap().is_match("abbbb"));
 }
 
 #[test]
-#[ignore]
 fn does_not_match() {
     assert!(!Regex::from("ab?c").unwrap().is_match("z"));
     assert!(!Regex::from("a+").unwrap().is_match(""));

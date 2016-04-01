@@ -109,7 +109,17 @@ impl NFA {
                 let s = State::split(None, Edge::Id(expr_id), None, Edge::Detached);
                 self.states.push(s);
                 self.states.len() - 1
-            }
+            },
+            &Expr::OneOrMore(ref expr) => {
+                let expr_id = self.build_expr(expr);
+                let s = State::split(None, Edge::Id(expr_id), None, Edge::Detached);
+
+                self.states.push(s);
+                let split_id = self.states.len() - 1;
+                self.update_outputs(expr_id, Edge::Id(split_id));
+
+                expr_id
+            },
             _ => panic!()
         };
 
@@ -117,30 +127,37 @@ impl NFA {
     }
 
     fn update_outputs(&mut self, start_id: usize, new_edge: Edge) {
+        self.update_outputs_rec(start_id, start_id, new_edge);
+    }
+
+    fn update_outputs_rec(&mut self, start_id: usize, initial_id: usize, new_edge: Edge) {
         let state = self.states[start_id].clone();
         let state = match state {
             State::State{edge, ref out} => {
                 State::state(edge, 
-                             self.replace_edge(out.clone(), new_edge)
+                             self.replace_edge(out.clone(), new_edge, start_id)
 )
             },
             State::Split{s1, ref out1, s2, ref out2} => {
                 State::split(s1,
-                             self.replace_edge(out1.clone(), new_edge.clone()),
+                             self.replace_edge(out1.clone(), new_edge.clone(), initial_id),
                              s2,
-                             self.replace_edge(out2.clone(), new_edge.clone()))
+                             self.replace_edge(out2.clone(), new_edge.clone(), initial_id))
             }
         };
         self.states[start_id] = state;
     }
 
-    fn replace_edge(&mut self, edge: Edge, replacement: Edge) -> Edge {
+    fn replace_edge(&mut self, edge: Edge, replacement: Edge, start_id: usize) -> Edge {
         match &edge {
             &Edge::Detached => {
                 replacement
             },
             &Edge::Id(id) => {
-                self.update_outputs(id, replacement);
+                if id != start_id { // don't recurse further
+                    self.update_outputs_rec(id, start_id, replacement);
+                }
+
                 edge
             },
             _ => edge

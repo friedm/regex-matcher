@@ -26,6 +26,10 @@ impl Expr {
         Expr::Optional(Box::new(item))
     }
 
+    pub fn one_or_more(item: Expr) -> Expr {
+        Expr::OneOrMore(Box::new(item))
+    }
+
     pub fn zero_or_more(item: Expr) -> Expr {
         Expr::ZeroOrMore(Box::new(item))
     }

@@ -80,7 +80,6 @@ impl PotentialMatch {
                 }
             }
         }
-
     }
 
     pub fn push_option<T>(vec: &mut Vec<T>, item: Option<T>) {
