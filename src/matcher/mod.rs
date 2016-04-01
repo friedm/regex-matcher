@@ -18,55 +18,55 @@ impl PotentialMatch {
 
         match current_state {
             State::State{ref edge, ref out} => {
-                self.next(nfa, edge, out)
+                vec![self.next_for_edge(nfa, edge, out)]
             },
             State::Split{ref s1, ref out1, ref s2, ref out2} => {
-                let mut s1_next = self.next(nfa, s1, out1);
-                let mut s2_next = self.next(nfa, s2, out2);
-                s1_next.append(&mut s2_next);
-                s1_next
+                let mut s1_next = self.next_for_edge(nfa, s1, out1);
+                let mut s2_next = self.next_for_edge(nfa, s2, out2);
+                vec![s1_next, s2_next]
             }
         }
     }
 
-    fn next(&self, nfa: &NFA, edge: &Option<char>, out: &Edge) -> Vec<PotentialMatch> {
+    fn next(&self, nfa: &NFA, edge: &Option<char>, out: &Edge) -> Option<PotentialMatch> {
         match edge {
             &Some(val) => {
                 if self.remaining_text.is_empty() {
                     // no character to consume, this potential match cannot continue
-                    return vec![];
+                    return None;
                 }
 
                 if val == self.remaining_text.as_bytes()[0] as char {
                     // can consume char and advance along edge
                     match out {
                         &Edge::End => {
-                            vec![PotentialMatch::new(None, 
-                                                     &self.remaining_text[1..])]
+                            Some(PotentialMatch::new(None, 
+                                                     &self.remaining_text[1..]))
                         },
                         &Edge::Id(id) => {
-                            vec![PotentialMatch::new(nfa.get_state(id),
-                            &self.remaining_text[1..])]
+                            Some(PotentialMatch::new(nfa.get_state(id),
+                            &self.remaining_text[1..]))
                         },
                         _ => panic!()
                     }
-                } else { // cannot proceed
-                    vec![]
+                } else { 
+                    // potential match cannot proceed, mismatched character
+                    None
                 }
             },
             &None => {
                 // can advance along empty edge
                 match out {
                     &Edge::End => {
-                        vec![PotentialMatch::new(None,
-                                                 &self.remaining_text)]
+                        Some(PotentialMatch::new(None,
+                                                 &self.remaining_text))
                     },
                     &Edge::Id(id) => {
-                        vec![PotentialMatch::new(
+                        Some(PotentialMatch::new(
                             nfa.get_state(id),
-                            &self.remaining_text)]
+                            &self.remaining_text))
                     },
-                    _ => panic!()
+                    _ => panic!("cannot evaluate incomplete NFA")
                 }
             }
         }
