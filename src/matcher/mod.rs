@@ -163,22 +163,18 @@ impl Matcher {
 
         while states.len() > 0 {
 
-            let mut updated_states = Vec::new();
+            let state = states.pop().unwrap();
 
-            for state in states {
-                let new_states = state.advance(&self.nfa);
-
-                for s in new_states {
-                    if s.is_match() {
-                        let num_chars_remaining = s.text.len();
-                        return Some(self.text.len() - num_chars_remaining);
-                    } else {
-                        updated_states.push(s);
-                    }
-                }
+            if state.is_match() {
+                let num_chars_remaining = state.text.len();
+                return Some(self.text.len() - num_chars_remaining);
             }
 
-            states = updated_states;
+            let mut new_states = state.advance(&self.nfa);
+            // states are in order of greediness
+            new_states.reverse(); 
+
+            states.append(&mut new_states);
         }
 
         None
