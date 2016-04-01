@@ -5,7 +5,7 @@ use ::nfa::{State, Edge, NFA};
 #[derive(Clone,PartialEq,Debug)]
 struct PotentialMatch {
     current_state: Option<State>,
-    remaining_text: String
+    text: Vec<u8>
 }
 
 impl PotentialMatch {
@@ -41,21 +41,19 @@ impl PotentialMatch {
     fn next_for_edge(&self, nfa: &NFA, edge: &Option<char>, out: &Edge) -> Option<PotentialMatch> {
         match edge {
             &Some(val) => {
-                if self.remaining_text.is_empty() {
+                if self.text.is_empty() {
                     // no character to consume, this potential match cannot continue
                     return None;
                 }
 
-                if val == self.remaining_text.as_bytes()[0] as char {
+                if val == self.text[0] as char {
                     // can consume char and advance along edge
                     match out {
                         &Edge::End => {
-                            Some(PotentialMatch::new(None, 
-                                                     &self.remaining_text[1..]))
+                            Some(self.with_state_and_increment(None))
                         },
                         &Edge::Id(id) => {
-                            Some(PotentialMatch::new(nfa.get_state(id),
-                            &self.remaining_text[1..]))
+                            Some(self.with_state_and_increment(nfa.get_state(id)))
                         },
                         _ => panic!()
                     }
@@ -68,13 +66,10 @@ impl PotentialMatch {
                 // can advance along empty edge
                 match out {
                     &Edge::End => {
-                        Some(PotentialMatch::new(None,
-                                                 &self.remaining_text))
+                        Some(self.with_state(None))
                     },
                     &Edge::Id(id) => {
-                        Some(PotentialMatch::new(
-                            nfa.get_state(id),
-                            &self.remaining_text))
+                        Some(self.with_state(nfa.get_state(id)))
                     },
                     _ => panic!("cannot evaluate incomplete NFA")
                 }
@@ -94,13 +89,28 @@ impl PotentialMatch {
         self.current_state.is_none()
     }
 
-    pub fn new(state: Option<State>, remaining_text: &str) -> PotentialMatch {
+    pub fn new(state: Option<State>, text: &str) -> Self {
         PotentialMatch {
             current_state: state,
-            remaining_text: remaining_text.to_owned()
+            text: Vec::from(text.to_owned().as_bytes())
+        }
+    }
+
+    fn with_state(&self, state: Option<State>) -> Self {
+        PotentialMatch {
+            current_state: state,
+            text: self.text.clone()
+        }
+    }
+
+    fn with_state_and_increment(&self, state: Option<State>) -> Self {
+        PotentialMatch {
+            current_state: state,
+            text: Vec::from(&self.text[1..])
         }
     }
 }
+
 
 pub struct Matcher {
     nfa: NFA,

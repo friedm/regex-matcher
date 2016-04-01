@@ -1,5 +1,7 @@
 # TODO
 
+disallow non-ascii strings
+
 test error cases  
 test `@` case  
 test empty regex case  
@@ -12,7 +14,7 @@ text begin, end
 escape metachars  
 
 refactor split  
-refactor other  
+review code
 
 bench test  
 
