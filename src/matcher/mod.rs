@@ -126,7 +126,7 @@ impl Matcher {
                                 &self.text)
         ];
 
-        while Self::has_valid_state(&states) {
+        while states.len() > 0 {
 
             let mut updated_states = Vec::new();
 
@@ -146,10 +146,6 @@ impl Matcher {
         }
 
         false
-    }
-
-    fn has_valid_state(states: &Vec<PotentialMatch>) -> bool {
-        states.len() > 0
     }
 }
 

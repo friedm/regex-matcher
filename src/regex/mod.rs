@@ -3,6 +3,7 @@ use ::nfa::NFA;
 use ::matcher::Matcher;
 
 #[cfg(test)] mod spec;
+#[cfg(test)] mod bench;
 
 #[derive(PartialEq,Debug)]
 pub struct Regex {

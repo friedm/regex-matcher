@@ -22,9 +22,11 @@ fn bench_difficult_regex(b: &mut Bencher, size: usize) {
     let mut regex: String = iter::repeat("a?").take(size).collect();
     regex.push_str(&text.clone());
 
+    let regex = Regex::from(&regex).unwrap();
+
     b.iter(|| {
-        let expr = Regex::from(&regex).unwrap();
-        assert!(expr.is_match(&text));
+        assert!(regex.is_match(&text.clone()));
+        assert!(!regex.is_match(&text[1..]));
     });
 }
 

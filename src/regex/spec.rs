@@ -57,7 +57,6 @@ fn backtracks_to_find_match() {
 }
 
 #[test]
-#[ignore]
 fn matches_zero_or_more() {
     let regex = Regex::from("ab*").unwrap();
     assert!(regex.is_match("abbbb"));
