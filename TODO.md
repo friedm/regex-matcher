@@ -1,20 +1,21 @@
 # TODO
 
-disallow non-ascii strings
-
-test error cases  
-test `@` case  
-test empty regex case  
-test match ordering  
-
-get specific match range  
-char class  
-text begin, end  
-escape metachars  
+*get specific match range  
 
 refactor split  
 refactor matcher::next_for_edge
 review code
 
-bench test  
+resolve runtime issues
+
+*test match ordering
+*test greediness
+test error cases  
+test `@` case  
+test empty regex case  
+
+disallow non-ascii strings
+char class  
+text begin, end  
+escape metachars  
 
