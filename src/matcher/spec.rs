@@ -2,15 +2,6 @@ use ::nfa::{NFA, State, Edge, ConditionChar};
 use super::{Matcher, PotentialMatch};
 
 #[test]
-fn advance_fail() {
-    let nfa = NFA::from_states(vec![
-        State::state(ConditionChar::One('b'), Edge::End)
-    ]);
-    let m = PotentialMatch::new(Some(nfa.get_state(0).clone().unwrap()), "a");
-    assert_eq!(Vec::<PotentialMatch>::new(), m.advance(&nfa));
-}
-
-#[test]
 fn is_match() {
     let m = PotentialMatch::new(None, "");
     assert_eq!(true, m.is_match());
@@ -21,7 +12,7 @@ fn is_match() {
 
 #[test]
 fn is_state_match() {
-    let m = PotentialMatch::new(Some(State::state(ConditionChar::One('a'), Edge::End)), "");
+    let m = PotentialMatch::new(Some(State::state(ConditionChar::one('a'), Edge::End)), "");
     assert_eq!(false, m.is_match());
 }
 
@@ -34,7 +25,7 @@ fn is_inconclusive() {
 #[test]
 fn advance_to_end() {
     let nfa = NFA::from_states(vec![
-        State::state(ConditionChar::One('a'), Edge::End)
+        State::state(ConditionChar::one('a'), Edge::End)
     ]);
 
     let m = PotentialMatch::new(nfa.get_start(),
@@ -48,8 +39,8 @@ fn advance_to_end() {
 #[test]
 fn advance_to_next() {
     let nfa = NFA::from_states(vec![
-        State::state(ConditionChar::One('a'), Edge::Id(1)),
-        State::state(ConditionChar::One('b'), Edge::End)
+        State::state(ConditionChar::one('a'), Edge::Id(1)),
+        State::state(ConditionChar::one('b'), Edge::End)
     ]);
 
     let expected_state = nfa.get_state(1).clone().unwrap();
@@ -67,22 +58,58 @@ fn advance_to_next() {
 }
 
 #[test]
-fn is_match_with_split() {
-    let nfa = NFA::from_states(vec![
-        State::split(ConditionChar::One('a'), Edge::End, ConditionChar::One('b'), Edge::End)
+fn advance_option_greedily() {
+    let nfa = NFA::from_states(vec![ // nfa for 'a?'
+        State::split(ConditionChar::None, Edge::End, ConditionChar::None, Edge::Id(1)),
+        State::state(ConditionChar::one('a'), Edge::End),
     ]);
 
+    let expected_state = nfa.get_state(1).clone().unwrap();
     let m = PotentialMatch::new(nfa.get_start(), "a");
-    assert!(m.advance(&nfa)[0].is_match());
-    let m = PotentialMatch::new(nfa.get_start(), "b");
-    assert!(m.advance(&nfa)[0].is_match())
+
+    let actual = m.advance(&nfa);
+    println!("{:#?}", actual);
+    assert_eq!(PotentialMatch::new(Some(expected_state), "a"),
+               actual[0]);
+    assert_eq!(PotentialMatch::new(None, "a"),
+               actual[1]);
+}
+
+#[test]
+fn advance_greedily() {
+    let nfa = NFA::from_states(vec![ // nfa for 'a?'
+        State::split(ConditionChar::None, Edge::Id(2), ConditionChar::None, Edge::Id(1)),
+        State::state(ConditionChar::one('a'), Edge::End),
+        State::state(ConditionChar::None, Edge::End),
+    ]);
+
+    let state_1 = nfa.get_state(1).clone().unwrap();
+    let state_2 = nfa.get_state(2).clone().unwrap();
+
+    let m = PotentialMatch::new(nfa.get_start(), "a");
+
+    let actual = m.advance(&nfa);
+    println!("{:#?}", actual);
+    assert_eq!(PotentialMatch::new(Some(state_1), "a"),
+               actual[0]);
+    assert_eq!(PotentialMatch::new(Some(state_2), "a"),
+               actual[1]);
+}
+
+#[test]
+fn advance_fail() {
+    let nfa = NFA::from_states(vec![
+        State::state(ConditionChar::one('b'), Edge::End)
+    ]);
+    let m = PotentialMatch::new(Some(nfa.get_state(0).clone().unwrap()), "a");
+    assert_eq!(Vec::<PotentialMatch>::new(), m.advance(&nfa));
 }
 
 #[test]
 fn advances_with_split() { // '(a|b)c'
     let nfa = NFA::from_states(vec![
-        State::split(ConditionChar::One('a'), Edge::Id(1), ConditionChar::One('b'), Edge::Id(1)),
-        State::state(ConditionChar::One('c'), Edge::End)
+        State::split(ConditionChar::one('a'), Edge::Id(1), ConditionChar::one('b'), Edge::Id(1)),
+        State::state(ConditionChar::one('c'), Edge::End)
     ]);
 
     let m = PotentialMatch::new(nfa.get_start(), "ac");
@@ -96,6 +123,19 @@ fn advances_with_split() { // '(a|b)c'
                PotentialMatch::new(nfa.get_state(1), "c"),
     ],
         m.advance(&nfa))
+}
+
+
+#[test]
+fn is_match_with_split() {
+    let nfa = NFA::from_states(vec![
+        State::split(ConditionChar::one('a'), Edge::End, ConditionChar::one('b'), Edge::End)
+    ]);
+
+    let m = PotentialMatch::new(nfa.get_start(), "a");
+    assert!(m.advance(&nfa)[0].is_match());
+    let m = PotentialMatch::new(nfa.get_start(), "b");
+    assert!(m.advance(&nfa)[0].is_match())
 }
 
 #[test]
@@ -117,7 +157,7 @@ fn single_state_matches() {
 #[test]
 fn single_char_nfa_matches() {
     let nfa = NFA::from_states(vec![
-        State::state(ConditionChar::One('a'), Edge::End)
+        State::state(ConditionChar::one('a'), Edge::End)
     ]);
 
     assert!(Matcher::new(nfa.clone(), "a").run().is_some());
@@ -128,7 +168,7 @@ fn single_char_nfa_matches() {
 fn null_edge_matches() {
     let nfa = NFA::from_states(vec![
         State::state(ConditionChar::None, Edge::Id(1)),
-        State::state(ConditionChar::One('a'), Edge::End)
+        State::state(ConditionChar::one('a'), Edge::End)
     ]);
 
     assert!(Matcher::new(nfa.clone(), "a").run().is_some());

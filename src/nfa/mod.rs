@@ -11,9 +11,19 @@ pub enum State {
 
 #[derive(PartialEq,Debug,Clone)]
 pub enum ConditionChar {
-    One(char),
+    One(u8), // ascii encoded char
     Any,
     None
+}
+
+impl ConditionChar {
+    pub fn one(c: char) -> ConditionChar {
+        let mut buf = [0; 1];
+        match c.encode_utf8(&mut buf) {
+            Some(1) => ConditionChar::One(buf[0]),
+            _ => panic!()
+        }
+    }
 }
 
 #[derive(PartialEq,Debug,Clone)]
@@ -42,6 +52,31 @@ impl State {
                      out1: out1,
                      c2: c2,
                      out2: out2}
+    }
+
+    pub fn priority_key(&self, nfa: &NFA) -> usize { 
+        // key by greediness and lexographical order of condition char
+       
+        match self {
+            &State::State{ref condition, ref out} => {
+                match condition {
+                    &ConditionChar::One(c) => c as usize, // there is a cost
+                    &ConditionChar::Any => 0, // prioritize any
+                    &ConditionChar::None => {
+                        match out {
+                            &Edge::Id(id) => {
+                                let next_state = nfa.get_state(id).unwrap();
+                                next_state.priority_key(&nfa)
+                            },
+                            _ => usize::max_value() // state terminates with no cost
+                        }
+                    }
+                }
+            },
+            &State::Split{ref c1, ref out1, ref c2, ref out2} => {
+                0
+            }
+        }
     }
 }
 
@@ -108,7 +143,7 @@ impl NFA {
             },
             &Expr::Single(c) => {
                 let new_state_id = self.states.len();
-                let s = State::state(ConditionChar::One(c), Edge::Detached);
+                let s = State::state(ConditionChar::one(c), Edge::Detached);
                 self.states.push(s);
 
                 self.states.len() - 1

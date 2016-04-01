@@ -33,6 +33,13 @@ impl PotentialMatch {
                 Self::push_option(&mut result, c1_next);
                 Self::push_option(&mut result, c2_next);
 
+                result.sort_by_key(|item| {
+                    match &item.current_state {
+                        &None => usize::max_value(), // this is an end state
+                        &Some(ref state) => state.priority_key(&nfa)
+                    }
+                });
+
                 result
             }
         }
@@ -46,7 +53,7 @@ impl PotentialMatch {
                     return None;
                 }
 
-                if val == self.text[0] as char {
+                if val == self.text[0] {
                     // can consume char and advance along edge
                     match out {
                         &Edge::End => {

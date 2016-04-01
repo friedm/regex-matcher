@@ -1,3 +1,4 @@
+#![feature(unicode)]
 #![feature(test)]
 
 pub mod regex;
