@@ -15,6 +15,16 @@ fn bench_12(b: &mut Bencher) {
     bench_difficult_regex(b, 12);
 }
 
+#[bench]
+fn bench_30(b: &mut Bencher) {
+    bench_difficult_regex(b, 30);
+}
+
+#[bench]
+fn bench_100(b: &mut Bencher) {
+    bench_difficult_regex(b, 100);
+}
+
 fn bench_difficult_regex(b: &mut Bencher, size: usize) {
     // 'a?a?aa' maching text "aa"
 
@@ -29,4 +39,5 @@ fn bench_difficult_regex(b: &mut Bencher, size: usize) {
         assert!(!regex.is_match(&text[1..]));
     });
 }
+
 
