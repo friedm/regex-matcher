@@ -19,6 +19,10 @@ impl Regex {
     }
 
     pub fn is_match(&self, text: &str) -> bool {
+        self.match_offset(text).is_some()
+    }
+
+    pub fn match_offset(&self, text: &str) -> Option<usize> {
         Matcher::new(self.nfa.clone(), text).run()
     }
 }

@@ -143,10 +143,10 @@ impl Matcher {
         }
     }
 
-    pub fn run(&mut self) -> bool {
+    pub fn run(&mut self) -> Option<usize> { // return optional end offset of match
 
         if self.nfa.num_states() == 0 { // regex is empty
-            return true;
+            return Some(0);
         }
 
         let mut states = vec![
@@ -163,7 +163,8 @@ impl Matcher {
 
                 for s in new_states {
                     if s.is_match() {
-                        return true;
+                        let num_chars_remaining = s.text.len();
+                        return Some(self.text.len() - num_chars_remaining);
                     } else {
                         updated_states.push(s);
                     }
@@ -173,7 +174,7 @@ impl Matcher {
             states = updated_states;
         }
 
-        false
+        None
     }
 }
 

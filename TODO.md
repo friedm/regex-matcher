@@ -1,15 +1,13 @@
 # TODO
 
-*get specific match range  
-
 refactor split  
 refactor matcher::next_for_edge
 review code
 
 resolve runtime issues
 
-*test match ordering
 *test greediness
+*test match ordering
 test error cases  
 test `@` case  
 test empty regex case  

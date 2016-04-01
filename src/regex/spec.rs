@@ -45,15 +45,18 @@ fn matches_character_class() {
 }
 
 #[test]
-#[ignore]
 fn backtracks_to_find_match() {
-    let regex = Regex::from("[bc]?c").unwrap();
+    let regex = Regex::from(".?c").unwrap();
     assert!(regex.is_match("cb"));
     assert!(regex.is_match("cc"));
     assert!(regex.is_match("c"));
     assert!(!regex.is_match("b"));
+}
 
-    //assert_eq!(Some((0,3)), Regex::from("a.b").unwrap().first("aaab"));
+#[test]
+fn finds_match_position() {
+    assert_eq!(None, Regex::from("a.b").unwrap().match_offset("aaab"));
+    assert_eq!(Some(3), Regex::from("a.a").unwrap().match_offset("aaab"));
 }
 
 #[test]
@@ -66,21 +69,18 @@ fn matches_zero_or_more() {
 }
 
 #[test]
-#[ignore]
 fn optional_metachar_is_greedy() {
-    assert!(false);
+    assert_eq!(Some(1), Regex::from(".?").unwrap().match_offset("a"));
 }
 
 #[test]
-#[ignore]
 fn one_or_more_metachar_is_greedy() {
-    assert!(false);
+    assert_eq!(Some(6), Regex::from(".+").unwrap().match_offset("aaaaaa"));
 }
 
 #[test]
-#[ignore]
 fn zero_or_more_metachar_is_greedy() {
-    assert!(false);
+    assert_eq!(Some(6), Regex::from(".*").unwrap().match_offset("aaaaaa"));
 }
 
 #[test]

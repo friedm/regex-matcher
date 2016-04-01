@@ -102,7 +102,7 @@ fn advances_with_split() { // '(a|b)c'
 fn empty_nfa_matches() {
     let nfa = NFA::from_states(vec![]);
 
-    assert!(Matcher::new(nfa, "").run());
+    assert!(Matcher::new(nfa, "").run().is_some());
 }
 
 #[test]
@@ -111,7 +111,7 @@ fn single_state_matches() {
         State::state(ConditionChar::None, Edge::End)
     ]);
 
-    assert!(Matcher::new(nfa, "a").run());
+    assert!(Matcher::new(nfa, "a").run().is_some());
 }
 
 #[test]
@@ -120,8 +120,8 @@ fn single_char_nfa_matches() {
         State::state(ConditionChar::One('a'), Edge::End)
     ]);
 
-    assert!(Matcher::new(nfa.clone(), "a").run());
-    assert!(!Matcher::new(nfa.clone(), "").run());
+    assert!(Matcher::new(nfa.clone(), "a").run().is_some());
+    assert!(!Matcher::new(nfa.clone(), "").run().is_some());
 }
 
 #[test]
@@ -131,7 +131,7 @@ fn null_edge_matches() {
         State::state(ConditionChar::One('a'), Edge::End)
     ]);
 
-    assert!(Matcher::new(nfa.clone(), "a").run());
-    assert!(!Matcher::new(nfa.clone(), "").run());
+    assert!(Matcher::new(nfa.clone(), "a").run().is_some());
+    assert!(!Matcher::new(nfa.clone(), "").run().is_some());
 }
 
