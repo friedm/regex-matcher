@@ -84,9 +84,13 @@ fn zero_or_more_metachar_is_greedy() {
 }
 
 #[test]
-#[ignore]
 fn dot_matches_any_one_character() {
-    assert!(false);
+    let regex = Regex::from(".").unwrap();
+    assert!(regex.is_match("a"));
+    assert!(regex.is_match("b"));
+    assert!(regex.is_match("5"));
+    assert!(regex.is_match("*"));
+    assert!(!regex.is_match(""));
 }
 
 #[test]

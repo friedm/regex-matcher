@@ -5,8 +5,14 @@ use ::expr::Expr;
 
 #[derive(PartialEq,Debug,Clone)]
 pub enum State {
-    State{edge: Option<char>, out: Edge},
-    Split{s1: Option<char>, out1: Edge, s2: Option<char>, out2: Edge}
+    State{condition: Option<char>, out: Edge},
+    Split{c1: Option<char>, out1: Edge, c2: Option<char>, out2: Edge}
+}
+
+enum ConditionChar {
+    One(char),
+    Any,
+    None
 }
 
 #[derive(PartialEq,Debug,Clone)]
@@ -26,14 +32,14 @@ impl Edge {
 }
 
 impl State {
-    pub fn state(edge: Option<char>, out: Edge) -> State {
-        State::State{edge: edge, out: out}
+    pub fn state(condition: Option<char>, out: Edge) -> State {
+        State::State{condition: condition, out: out}
     }
 
-    pub fn split(s1: Option<char>, out1: Edge, s2: Option<char>, out2: Edge) -> State {
-        State::Split{s1: s1,
+    pub fn split(c1: Option<char>, out1: Edge, c2: Option<char>, out2: Edge) -> State {
+        State::Split{c1: c1,
                      out1: out1,
-                     s2: s2,
+                     c2: c2,
                      out2: out2}
     }
 }
@@ -143,15 +149,15 @@ impl NFA {
     fn update_outputs_rec(&mut self, start_id: usize, initial_id: usize, new_edge: Edge) {
         let state = self.states[start_id].clone();
         let state = match state {
-            State::State{edge, ref out} => {
-                State::state(edge, 
+            State::State{condition, ref out} => {
+                State::state(condition, 
                              self.replace_edge(out.clone(), new_edge, start_id)
 )
             },
-            State::Split{s1, ref out1, s2, ref out2} => {
-                State::split(s1,
+            State::Split{c1, ref out1, c2, ref out2} => {
+                State::split(c1,
                              self.replace_edge(out1.clone(), new_edge.clone(), initial_id),
-                             s2,
+                             c2,
                              self.replace_edge(out2.clone(), new_edge.clone(), initial_id))
             }
         };
