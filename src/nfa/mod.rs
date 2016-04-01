@@ -1,3 +1,5 @@
+use std::cmp;
+
 use ::expr::Expr;
 
 #[cfg(test)] mod spec;
@@ -54,27 +56,33 @@ impl State {
                      out2: out2}
     }
 
-    pub fn priority_key(&self, nfa: &NFA) -> usize { 
+    pub fn get_priority_key(&self, nfa: &NFA) -> usize { 
         // key by greediness and lexographical order of condition char
        
         match self {
             &State::State{ref condition, ref out} => {
-                match condition {
-                    &ConditionChar::One(c) => c as usize, // there is a cost
-                    &ConditionChar::Any => 0, // prioritize any
-                    &ConditionChar::None => {
-                        match out {
-                            &Edge::Id(id) => {
-                                let next_state = nfa.get_state(id).unwrap();
-                                next_state.priority_key(&nfa)
-                            },
-                            _ => usize::max_value() // state terminates with no cost
-                        }
-                    }
-                }
+                Self::get_transition_priority_key(condition, out, nfa)
             },
             &State::Split{ref c1, ref out1, ref c2, ref out2} => {
-                0
+                cmp::min(
+                    Self::get_transition_priority_key(c1, out1, nfa),
+                    Self::get_transition_priority_key(c2, out2, nfa))
+            }
+        }
+    }
+
+    fn get_transition_priority_key(condition: &ConditionChar, out: &Edge, nfa: &NFA) -> usize {
+        match condition {
+            &ConditionChar::One(c) => c as usize, // there is a cost
+            &ConditionChar::Any => 0, // prioritize any
+            &ConditionChar::None => {
+                match out {
+                    &Edge::Id(id) => {
+                        let next_state = nfa.get_state(id).unwrap();
+                        next_state.get_priority_key(&nfa)
+                    },
+                    _ => usize::max_value() // state terminates with no cost
+                }
             }
         }
     }

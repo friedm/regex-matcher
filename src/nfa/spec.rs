@@ -109,11 +109,44 @@ fn build_any() {
 }
 
 #[test]
-fn state_priority() {
+fn prioritizes_state() {
     let s = State::state(ConditionChar::one('a'), Edge::End);
-    assert_eq!(97, s.priority_key(&NFA::new()));
+    assert_eq!(97, s.get_priority_key(&NFA::new()));
 
     let s = State::state(ConditionChar::Any, Edge::End);
-    assert_eq!(0, s.priority_key(&NFA::new()));
+    assert_eq!(0, s.get_priority_key(&NFA::new()));
+
+    let s = State::state(ConditionChar::None, Edge::End);
+    assert_eq!(usize::max_value(), s.get_priority_key(&NFA::new()));
+
+    // recursive
+    let s = State::state(ConditionChar::None, Edge::Id(0));
+    assert_eq!(98, s.get_priority_key(&NFA::from_states(vec![
+        State::state(ConditionChar::None, Edge::Id(1)),
+        State::state(ConditionChar::one('b'), Edge::End)
+    ])));
+
+    // does not infinitely loop (assuming no free cycles)
+    let s = State::state(ConditionChar::None, Edge::Id(0));
+    assert_eq!(0, s.get_priority_key(&NFA::from_states(vec![
+        State::state(ConditionChar::Any, Edge::Id(0))
+    ])));
+}
+
+#[test]
+fn prioritizes_split() {
+    let s = State::split(ConditionChar::one('a'), Edge::End, ConditionChar::None, Edge::End);
+    assert_eq!(97, s.get_priority_key(&NFA::new()));
+
+    let s = State::split(ConditionChar::None, Edge::End, ConditionChar::None, Edge::End);
+    assert_eq!(usize::max_value(), s.get_priority_key(&NFA::new()));
+
+    // recursive
+    let s = State::split(ConditionChar::None, Edge::Id(0), ConditionChar::None, Edge::End);
+    assert_eq!(0, s.get_priority_key(&NFA::from_states(vec![
+        State::split(ConditionChar::None, Edge::Id(1), ConditionChar::None, Edge::Id(2)),
+        State::state(ConditionChar::one('a'), Edge::End),
+        State::state(ConditionChar::Any, Edge::End)
+    ])));
 }
 

@@ -36,7 +36,7 @@ impl PotentialMatch {
                 result.sort_by_key(|item| {
                     match &item.current_state {
                         &None => usize::max_value(), // this is an end state
-                        &Some(ref state) => state.priority_key(&nfa)
+                        &Some(ref state) => state.get_priority_key(&nfa)
                     }
                 });
 
