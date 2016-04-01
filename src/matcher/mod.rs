@@ -1,4 +1,4 @@
-use ::nfa::{State, Edge, NFA};
+use ::nfa::{State, Edge, NFA, ConditionChar};
 
 #[cfg(test)] mod spec;
 
@@ -38,9 +38,9 @@ impl PotentialMatch {
         }
     }
 
-    fn next_for_edge(&self, nfa: &NFA, condition: &Option<char>, out: &Edge) -> Option<PotentialMatch> {
+    fn next_for_edge(&self, nfa: &NFA, condition: &ConditionChar, out: &Edge) -> Option<PotentialMatch> {
         match condition {
-            &Some(val) => {
+            &ConditionChar::One(val) => {
                 if self.text.is_empty() {
                     // no character to consume, this potential match cannot continue
                     return None;
@@ -62,7 +62,7 @@ impl PotentialMatch {
                     None
                 }
             },
-            &None => {
+            &ConditionChar::None => {
                 // can advance along empty edge
                 match out {
                     &Edge::End => {
@@ -72,6 +72,25 @@ impl PotentialMatch {
                         Some(self.with_state(nfa.get_state(id)))
                     },
                     _ => panic!("cannot evaluate incomplete NFA")
+                }
+            },
+            &ConditionChar::Any => {
+                if self.text.is_empty() {
+                    return None;
+                }
+
+                if self.text[0] as char == '\n' {
+                    return None; // `.` should not match newline
+                }
+
+                match out {
+                    &Edge::End => {
+                        Some(self.with_state_and_increment(None))
+                    },
+                    &Edge::Id(id) => {
+                        Some(self.with_state_and_increment(nfa.get_state(id)))
+                    },
+                    _ => panic!()
                 }
             }
         }

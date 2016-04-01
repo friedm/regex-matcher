@@ -5,11 +5,12 @@ use ::expr::Expr;
 
 #[derive(PartialEq,Debug,Clone)]
 pub enum State {
-    State{condition: Option<char>, out: Edge},
-    Split{c1: Option<char>, out1: Edge, c2: Option<char>, out2: Edge}
+    State{condition: ConditionChar, out: Edge},
+    Split{c1: ConditionChar, out1: Edge, c2: ConditionChar, out2: Edge}
 }
 
-enum ConditionChar {
+#[derive(PartialEq,Debug,Clone)]
+pub enum ConditionChar {
     One(char),
     Any,
     None
@@ -32,11 +33,11 @@ impl Edge {
 }
 
 impl State {
-    pub fn state(condition: Option<char>, out: Edge) -> State {
+    pub fn state(condition: ConditionChar, out: Edge) -> State {
         State::State{condition: condition, out: out}
     }
 
-    pub fn split(c1: Option<char>, out1: Edge, c2: Option<char>, out2: Edge) -> State {
+    pub fn split(c1: ConditionChar, out1: Edge, c2: ConditionChar, out2: Edge) -> State {
         State::Split{c1: c1,
                      out1: out1,
                      c2: c2,
@@ -98,27 +99,37 @@ impl NFA {
 
     fn build_expr(&mut self, expr: &Expr) -> usize {
         let id = match expr {
+            &Expr::Any => {
+                let new_state_id = self.states.len();
+                let s = State::state(ConditionChar::Any, Edge::Detached);
+                self.states.push(s);
+
+                self.states.len() - 1
+            },
             &Expr::Single(c) => {
                 let new_state_id = self.states.len();
-                let s = State::state(Some(c), Edge::Detached);
+                let s = State::state(ConditionChar::One(c), Edge::Detached);
                 self.states.push(s);
+
                 self.states.len() - 1
             },
             &Expr::Sequence(ref a, ref b) => {
                 let left_id = self.build_expr(a);
                 let right_id = self.build_expr(b);
                 self.update_outputs(left_id, Edge::Id(right_id));
+
                 left_id
             },
             &Expr::Optional(ref expr) => {
                 let expr_id = self.build_expr(expr);
-                let s = State::split(None, Edge::Id(expr_id), None, Edge::Detached);
+                let s = State::split(ConditionChar::None, Edge::Id(expr_id), ConditionChar::None, Edge::Detached);
                 self.states.push(s);
+
                 self.states.len() - 1
             },
             &Expr::OneOrMore(ref expr) => {
                 let expr_id = self.build_expr(expr);
-                let s = State::split(None, Edge::Id(expr_id), None, Edge::Detached);
+                let s = State::split(ConditionChar::None, Edge::Id(expr_id), ConditionChar::None, Edge::Detached);
 
                 self.states.push(s);
                 let split_id = self.states.len() - 1;
@@ -128,14 +139,14 @@ impl NFA {
             },
             &Expr::ZeroOrMore(ref expr) => {
                 let expr_id = self.build_expr(expr);
-                let s = State::split(None, Edge::Id(expr_id), None, Edge::Detached);
+                let s = State::split(ConditionChar::None, Edge::Id(expr_id), ConditionChar::None, Edge::Detached);
 
                 self.states.push(s);
                 let split_id = self.states.len() - 1;
                 self.update_outputs(expr_id, Edge::Id(split_id));
 
                 split_id
-            }
+            },
             _ => panic!()
         };
 
@@ -149,15 +160,15 @@ impl NFA {
     fn update_outputs_rec(&mut self, start_id: usize, initial_id: usize, new_edge: Edge) {
         let state = self.states[start_id].clone();
         let state = match state {
-            State::State{condition, ref out} => {
-                State::state(condition, 
+            State::State{ref condition, ref out} => {
+                State::state(condition.clone(), 
                              self.replace_edge(out.clone(), new_edge, start_id)
 )
             },
-            State::Split{c1, ref out1, c2, ref out2} => {
-                State::split(c1,
+            State::Split{ref c1, ref out1, ref c2, ref out2} => {
+                State::split(c1.clone(),
                              self.replace_edge(out1.clone(), new_edge.clone(), initial_id),
-                             c2,
+                             c2.clone(),
                              self.replace_edge(out2.clone(), new_edge.clone(), initial_id))
             }
         };

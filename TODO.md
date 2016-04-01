@@ -8,12 +8,12 @@ test empty regex case
 test match ordering  
 
 get specific match range  
-`.`  
 char class  
 text begin, end  
 escape metachars  
 
 refactor split  
+refactor matcher::next_for_edge
 review code
 
 bench test  

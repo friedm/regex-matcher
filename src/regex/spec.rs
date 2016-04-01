@@ -91,11 +91,13 @@ fn dot_matches_any_one_character() {
     assert!(regex.is_match("5"));
     assert!(regex.is_match("*"));
     assert!(!regex.is_match(""));
+
+    assert!(Regex::from(".*").unwrap().is_match("ab5*"));
 }
 
 #[test]
-#[ignore]
 fn dot_does_not_match_newline() {
-    assert!(false);
+    let regex = Regex::from(".").unwrap();
+    assert!(!regex.is_match("\n"));
 }
 
