@@ -1,5 +1,4 @@
-use std::str::FromStr;
-use std::collections::vec_deque::VecDeque;
+use std::str::{FromStr, Chars};
 
 #[cfg(test)] mod spec;
 
@@ -46,20 +45,39 @@ impl FromStr for Expr {
 
     fn from_str(s: &str) -> Result<Expr,String> {
 
-        let mut output_queue = VecDeque::<Expr>::new();
-        let mut operator_stack = Vec::<char>::new();
+        ExprBuilder::from(s).parse()
+    }
+}
+
+
+struct ExprBuilder {
+    chars: Vec<char>,
+    output_stack: Vec<Expr>,
+    operator_stack: Vec<char>
+}
+
+impl ExprBuilder {
+
+    pub fn from(s: &str) -> Self {
+        ExprBuilder {
+            chars: s.chars().collect::<Vec<_>>(),
+            output_stack: Vec::<Expr>::new(),
+            operator_stack: Vec::<char>::new()
+        }
+    }
+
+    pub fn parse(&mut self) -> Result<Expr,String> {
         let mut last_was_char = false;
         let mut in_char_class = false;
 
         let mut current_class = Vec::new();
 
-        let mut chars = s.chars();
-        while chars.clone().count() > 0 {
-            let mut c = chars.next().unwrap();
+        for c in &self.chars {
+            let c = *c;
 
             if in_char_class {
                 if c == ']' {
-                    output_queue.push_back(Expr::Class(current_class));
+                    self.output_stack.push(Expr::Class(current_class));
                     current_class = Vec::new();
                     in_char_class = false;
                 } else {
@@ -71,18 +89,18 @@ impl FromStr for Expr {
 
             if c == '(' {
 
-                if !output_queue.is_empty() && last_was_char {
-                    operator_stack.push('@'); // "sequence" operator
+                if !self.output_stack.is_empty() && last_was_char {
+                    self.operator_stack.push('@'); // "sequence" operator
                 }
-                operator_stack.push(c);
+                self.operator_stack.push(c);
                 last_was_char = false;
 
             } else if c == ')' {
 
-                let mut top = operator_stack.pop().expect("mismatched parens");
+                let mut top = self.operator_stack.pop().expect("mismatched parens");
                 while top != '(' {
-                    pop_infix_operator(top, &mut output_queue);
-                    top = operator_stack.pop().unwrap();
+                    self.pop_infix_operator(top);
+                    top = self.operator_stack.pop().unwrap();
                 }
 
             } else if c == '[' {
@@ -92,94 +110,98 @@ impl FromStr for Expr {
                 panic!();
             } else if BINARY_OPERATORS.contains(&c) {
 
-                while !operator_stack.is_empty() {
-                    if operator_stack.last().unwrap() == &'(' { break; } // parens have higher prescedence than any other operator
-                    pop_infix_operator(operator_stack.pop().unwrap(), &mut output_queue);
+                while !self.operator_stack.is_empty() {
+                    if self.operator_stack.last().unwrap() == &'(' { break; } // parens have higher prescedence than any other operator
+                    self.pop_infix_operator(self.operator_stack.pop().unwrap());
                 }
-                operator_stack.push(c);
+                self.operator_stack.push(c);
                 last_was_char = false;
 
             } else if UNARY_POSTFIX_OPERATORS.contains(&c) {
 
-                apply_postfix_operator(c, &mut output_queue);
+                self.apply_postfix_operator(c);
                 last_was_char = false;
 
             } else if SPECIAL_CHARS.contains(&c) {
 
-                if !output_queue.is_empty() && last_was_char {
-                    operator_stack.push('@'); // "sequence" operator
+                if !self.output_stack.is_empty() && last_was_char {
+                    self.operator_stack.push('@'); // "sequence" operator
                 }
-                output_queue.push_back(Expr::Any);
+                self.output_stack.push(Expr::Any);
                 last_was_char = true;
 
             } else { // literal char
 
-                if !output_queue.is_empty() && last_was_char {
-                    operator_stack.push('@'); // "sequence" operator
+                if !self.output_stack.is_empty() && last_was_char {
+                    self.operator_stack.push('@'); // "sequence" operator
                 }
-                output_queue.push_back(Expr::Single(c));
+                self.output_stack.push(Expr::Single(c));
                 last_was_char = true;
 
             }
         }
 
-        while !operator_stack.is_empty() {
-            pop_infix_operator(operator_stack.pop().unwrap(), &mut output_queue);
+        for operator in self.operator_stack {
+            self.pop_infix_operator(operator);
         }
 
         // build sequence tree from queue
-        while output_queue.len() > 1 {
-            let right = output_queue.pop_back().unwrap();
-            let left = output_queue.pop_back().unwrap();
+        while self.output_stack.len() > 1 {
+            let right = self.output_stack.pop().unwrap();
+            let left = self.output_stack.pop().unwrap();
 
-            output_queue.push_back(Expr::sequence(left,
+            self.output_stack.push(Expr::sequence(left,
                                                   right));
         }
 
-        output_queue.pop_front().ok_or("output queue empty".to_owned())
+        if self.output_stack.is_empty() {
+            Err("output stack empty".to_owned())
+        } else {
+            Ok(self.output_stack[0])
+        }
     }
-}
 
-fn pop_infix_operator(operator: char, output_queue: &mut VecDeque<Expr>) {
-    match operator {
-        '|' => { 
-            apply_binary_operator(output_queue, &|l,r| Expr::Or(l,r));
-        },
-        '@' => { // sequence operator (inserted between consecutive single chars)
-            apply_binary_operator(output_queue, &|l,r| Expr::Sequence(l,r));
-        },
-        op => panic!("unknown infix operator {}", op)
+    fn pop_infix_operator(&mut self, operator: char) {
+        match operator {
+            '|' => { 
+                self.apply_binary_operator(&|l,r| Expr::Or(l,r));
+            },
+            '@' => { // sequence operator (inserted between consecutive single chars)
+                self.apply_binary_operator(&|l,r| Expr::Sequence(l,r));
+            },
+            op => panic!("unknown infix operator {}", op)
+        }
     }
-}
 
-fn apply_postfix_operator(operator: char, output_queue: &mut VecDeque<Expr>) {
-    match operator {
-        '?' => {
-            apply_unary_operator(output_queue, &|expr| Expr::Optional(expr));
-        },
-        '*' => {
-            apply_unary_operator(output_queue, &|expr| Expr::ZeroOrMore(expr));
-        },
-        '+' => {
-            apply_unary_operator(output_queue, &|expr| Expr::OneOrMore(expr));
-        },
-        _ => panic!("unknown postfix operator")
+    fn apply_postfix_operator(&mut self, operator: char) {
+        match operator {
+            '?' => {
+                self.apply_unary_operator(&|expr| Expr::Optional(expr));
+            },
+            '*' => {
+                self.apply_unary_operator(&|expr| Expr::ZeroOrMore(expr));
+            },
+            '+' => {
+                self.apply_unary_operator(&|expr| Expr::OneOrMore(expr));
+            },
+            _ => panic!("unknown postfix operator")
+        }
     }
-}
 
-fn apply_binary_operator(output_queue: &mut VecDeque<Expr>, 
-                         constructor: &Fn(Box<Expr>, Box<Expr>) -> Expr) {
+    fn apply_binary_operator(&mut self,
+                             constructor: &Fn(Box<Expr>, Box<Expr>) -> Expr) {
 
-    let right = output_queue.pop_back().expect("not enough elements in queue for binary operator");
-    let left = output_queue.pop_back().expect("not enough elements in queue for binary operator");
+        let right = self.output_stack.pop().expect("not enough elements in queue for binary operator");
+        let left = self.output_stack.pop().expect("not enough elements in queue for binary operator");
 
-    output_queue.push_back(constructor(Box::new(left),Box::new(right)));
-}
+        self.output_stack.push(constructor(Box::new(left),Box::new(right)));
+    }
 
-fn apply_unary_operator(output_queue: &mut VecDeque<Expr>,
-                        constructor: &Fn(Box<Expr>) -> Expr) {
+    fn apply_unary_operator(&mut self,
+                            constructor: &Fn(Box<Expr>) -> Expr) {
 
-    let item = output_queue.pop_back().unwrap();
-    output_queue.push_back(constructor(Box::new(item)));
+        let item = self.output_stack.pop().unwrap();
+        self.output_stack.push(constructor(Box::new(item)));
+    }
 }
 
