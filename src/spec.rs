@@ -12,7 +12,6 @@ fn creates_empty() {
 }
 
 #[test]
-#[ignore]
 fn returns_err_on_invalid_regex() {
     assert!(Regex::from("[").is_err());
 }

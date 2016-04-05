@@ -33,7 +33,6 @@ fn matches_with_kleene_star() {
 }
 
 #[test]
-#[ignore]
 fn matches_character_class() {
     let regex = Regex::from("[abc]").unwrap();
     assert!(regex.is_match("a"));
