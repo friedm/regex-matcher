@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use ::nfa::{State, Edge, NFA, ConditionChar};
+use ::nfa::{State, Transition, NFA, Condition};
 
 #[cfg(test)] mod spec;
 
@@ -28,8 +28,8 @@ impl PotentialMatch {
                 result
             },
             State::Split{ref out1, ref out2} => {
-                let c1_next = self.next_for_edge(nfa, &ConditionChar::None, out1);
-                let c2_next = self.next_for_edge(nfa, &ConditionChar::None, out2);
+                let c1_next = self.next_for_edge(nfa, &Condition::None, out1);
+                let c2_next = self.next_for_edge(nfa, &Condition::None, out2);
 
                 let mut result = Vec::new();
                 Self::push_option(&mut result, c1_next);
@@ -47,9 +47,9 @@ impl PotentialMatch {
         }
     }
 
-    fn next_for_edge(&self, nfa: &NFA, condition: &ConditionChar, out: &Edge) -> Option<PotentialMatch> {
+    fn next_for_edge(&self, nfa: &NFA, condition: &Condition, out: &Transition) -> Option<PotentialMatch> {
         match condition {
-            &ConditionChar::One(val) => {
+            &Condition::One(val) => {
                 if self.text.is_empty() {
                     // no character to consume, this potential match cannot continue
                     return None;
@@ -58,10 +58,10 @@ impl PotentialMatch {
                 if val == self.text[0] {
                     // can consume char and advance along edge
                     match out {
-                        &Edge::End => {
+                        &Transition::End => {
                             Some(self.with_state_and_increment(None))
                         },
-                        &Edge::Id(id) => {
+                        &Transition::Id(id) => {
                             Some(self.with_state_and_increment(nfa.get_state(id)))
                         },
                         _ => panic!()
@@ -71,19 +71,19 @@ impl PotentialMatch {
                     None
                 }
             },
-            &ConditionChar::None => {
+            &Condition::None => {
                 // can advance along empty edge
                 match out {
-                    &Edge::End => {
+                    &Transition::End => {
                         Some(self.with_state(None))
                     },
-                    &Edge::Id(id) => {
+                    &Transition::Id(id) => {
                         Some(self.with_state(nfa.get_state(id)))
                     },
                     _ => panic!("cannot evaluate incomplete NFA")
                 }
             },
-            &ConditionChar::Any => {
+            &Condition::Any => {
                 if self.text.is_empty() {
                     return None;
                 }
@@ -93,16 +93,16 @@ impl PotentialMatch {
                 }
 
                 match out {
-                    &Edge::End => {
+                    &Transition::End => {
                         Some(self.with_state_and_increment(None))
                     },
-                    &Edge::Id(id) => {
+                    &Transition::Id(id) => {
                         Some(self.with_state_and_increment(nfa.get_state(id)))
                     },
                     _ => panic!()
                 }
             },
-            &ConditionChar::Class(ref chars) => {
+            &Condition::Class(ref chars) => {
                 if self.text.is_empty() {
                     // no character to consume, this potential match cannot continue
                     return None;
@@ -111,10 +111,10 @@ impl PotentialMatch {
                 if chars.contains(&self.text[0]) {
                     // can consume char and advance along edge
                     match out {
-                        &Edge::End => {
+                        &Transition::End => {
                             Some(self.with_state_and_increment(None))
                         },
-                        &Edge::Id(id) => {
+                        &Transition::Id(id) => {
                             Some(self.with_state_and_increment(nfa.get_state(id)))
                         },
                         _ => panic!()
