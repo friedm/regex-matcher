@@ -1,6 +1,5 @@
 # TODO
 
-* refactor split  
 * refactor matcher::next_for_edge 
 * `^`, `$`, ability to escape metachars  
 

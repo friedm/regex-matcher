@@ -3,9 +3,9 @@
 
 pub mod regex;
 
-mod matcher;
-mod nfa;
 mod expr;
+mod nfa;
+mod matcher;
 
 pub use regex::Regex;
 pub use expr::Expr;

@@ -60,7 +60,7 @@ fn advance_to_next() {
 #[test]
 fn advance_option_greedily() {
     let nfa = NFA::from_states(vec![ // nfa for 'a?'
-        State::split(ConditionChar::None, Edge::End, ConditionChar::None, Edge::Id(1)),
+        State::split(Edge::End, Edge::Id(1)),
         State::state(ConditionChar::one('a'), Edge::End),
     ]);
 
@@ -78,7 +78,7 @@ fn advance_option_greedily() {
 #[test]
 fn advance_greedily() {
     let nfa = NFA::from_states(vec![ // nfa for 'a?'
-        State::split(ConditionChar::None, Edge::Id(2), ConditionChar::None, Edge::Id(1)),
+        State::split(Edge::Id(2), Edge::Id(1)),
         State::state(ConditionChar::one('a'), Edge::End),
         State::state(ConditionChar::None, Edge::End),
     ]);
@@ -108,28 +108,28 @@ fn advance_fail() {
 #[test]
 fn advances_with_split() { // '(a|b)c'
     let nfa = NFA::from_states(vec![
-        State::split(ConditionChar::one('a'), Edge::Id(1), ConditionChar::one('b'), Edge::Id(1)),
+        State::split(Edge::Id(1), Edge::Id(2)),
+        State::state(ConditionChar::one('a'), Edge::Id(3)),
+        State::state(ConditionChar::one('b'), Edge::Id(3)),
         State::state(ConditionChar::one('c'), Edge::End)
     ]);
 
     let m = PotentialMatch::new(nfa.get_start(), "ac");
     assert_eq!(vec![
-               PotentialMatch::new(nfa.get_state(1), "c"),
-    ],
-        m.advance(&nfa));
+               PotentialMatch::new(nfa.get_state(3), "c")
+    ], m.advance(&nfa)[0].advance(&nfa));
 
     let m = PotentialMatch::new(nfa.get_start(), "bc");
     assert_eq!(vec![
-               PotentialMatch::new(nfa.get_state(1), "c"),
-    ],
-        m.advance(&nfa))
+               PotentialMatch::new(nfa.get_state(3), "c")
+    ], m.advance(&nfa)[1].advance(&nfa))
 }
 
 
 #[test]
 fn is_match_with_split() {
     let nfa = NFA::from_states(vec![
-        State::split(ConditionChar::one('a'), Edge::End, ConditionChar::one('b'), Edge::End)
+        State::split(Edge::End, Edge::End)
     ]);
 
     let m = PotentialMatch::new(nfa.get_start(), "a");

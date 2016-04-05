@@ -21,7 +21,7 @@ fn build_sequence() {
 fn build_option() {
     let nfa = NFA::from_expr(&Expr::optional(Expr::Single('a')));
 
-    assert_eq!(vec![State::state(ConditionChar::one('a'), Edge::End), State::split(ConditionChar::None, Edge::Id(0), ConditionChar::None, Edge::End)],
+    assert_eq!(vec![State::state(ConditionChar::one('a'), Edge::End), State::split(Edge::Id(0), Edge::End)],
         nfa.states);
     assert_eq!(1, nfa.start);
 }
@@ -38,8 +38,7 @@ fn build_complex_option() {
     assert_eq!(vec![
         State::state(ConditionChar::one('a'), Edge::Id(1)),
         State::state(ConditionChar::one('b'), Edge::Id(3)),
-        State::split(ConditionChar::None, Edge::Id(0),
-                     ConditionChar::None, Edge::Id(3)),
+        State::split(Edge::Id(0), Edge::Id(3)),
         State::state(ConditionChar::one('a'), Edge::End)
     ], nfa.states);
     assert_eq!(2, nfa.start);
@@ -53,7 +52,7 @@ fn build_one_or_more() {
 
     assert_eq!(vec![
         State::state(ConditionChar::one('a'), Edge::Id(1)),
-        State::split(ConditionChar::None, Edge::Id(0), ConditionChar::None, Edge::End)
+        State::split(Edge::Id(0), Edge::End)
     ], nfa.states);
     assert_eq!(0, nfa.start);
 }
@@ -64,9 +63,9 @@ fn build_more_complex_one_or_more() {
 
     assert_eq!(vec![
         State::state(ConditionChar::one('a'), Edge::Id(1)),
-        State::split(ConditionChar::None, Edge::Id(0), ConditionChar::None, Edge::Id(2)),
+        State::split(Edge::Id(0), Edge::Id(2)),
         State::state(ConditionChar::one('a'), Edge::Id(3)),
-        State::split(ConditionChar::None, Edge::Id(2), ConditionChar::None, Edge::Id(4)),
+        State::split(Edge::Id(2), Edge::Id(4)),
         State::state(ConditionChar::one('b'), Edge::End)
     ], nfa.states);
     assert_eq!(0, nfa.start);
@@ -80,7 +79,7 @@ fn build_zero_or_more() {
     
     assert_eq!(vec![
         State::state(ConditionChar::one('a'), Edge::Id(1)),
-        State::split(ConditionChar::None, Edge::Id(0), ConditionChar::None, Edge::End)
+        State::split(Edge::Id(0), Edge::End)
     ], nfa.states);
     assert_eq!(1, nfa.start);
 }
@@ -91,10 +90,10 @@ fn build_more_complex_zero_or_more() {
 
     assert_eq!(vec![
         State::state(ConditionChar::one('b'), Edge::Id(1)), // 0
-        State::split(ConditionChar::None, Edge::Id(0), ConditionChar::None, Edge::Id(2)), // 1
+        State::split(Edge::Id(0), Edge::Id(2)), // 1
         State::state(ConditionChar::one('c'), Edge::Id(4)), // 2
         State::state(ConditionChar::one('d'), Edge::Id(4)), // 3
-        State::split(ConditionChar::None, Edge::Id(3), ConditionChar::None, Edge::End)// 4
+        State::split(Edge::Id(3), Edge::End)// 4
     ], nfa.states);
     assert_eq!(1, nfa.start);
 }
@@ -113,7 +112,7 @@ fn build_or() {
     assert_eq!(vec![
         State::state(ConditionChar::one('a'), Edge::End),
         State::state(ConditionChar::one('b'), Edge::End),
-        State::split(ConditionChar::None, Edge::Id(0), ConditionChar::None, Edge::Id(1))
+        State::split(Edge::Id(0), Edge::Id(1))
     ], nfa.states);
     assert_eq!(2, nfa.start);
 }
@@ -154,16 +153,19 @@ fn prioritizes_state() {
 
 #[test]
 fn prioritizes_split() {
-    let s = State::split(ConditionChar::one('a'), Edge::End, ConditionChar::None, Edge::End);
-    assert_eq!(97, s.get_priority_key(&NFA::new()));
+    let nfa = NFA::from_states(vec![
+        State::state(ConditionChar::one('a'), Edge::End)
+    ]);
+    let s = State::split(Edge::Id(0), Edge::End);
+    assert_eq!(97, s.get_priority_key(&nfa));
 
-    let s = State::split(ConditionChar::None, Edge::End, ConditionChar::None, Edge::End);
+    let s = State::split(Edge::End, Edge::End);
     assert_eq!(usize::max_value(), s.get_priority_key(&NFA::new()));
 
     // recursive
-    let s = State::split(ConditionChar::None, Edge::Id(0), ConditionChar::None, Edge::End);
+    let s = State::split(Edge::Id(0), Edge::End);
     assert_eq!(0, s.get_priority_key(&NFA::from_states(vec![
-        State::split(ConditionChar::None, Edge::Id(1), ConditionChar::None, Edge::Id(2)),
+        State::split(Edge::Id(1), Edge::Id(2)),
         State::state(ConditionChar::one('a'), Edge::End),
         State::state(ConditionChar::Any, Edge::End)
     ])));

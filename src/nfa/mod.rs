@@ -6,12 +6,6 @@ use ::expr::Expr;
 
 
 #[derive(PartialEq,Debug,Clone,Eq,Hash)]
-pub enum State {
-    State{condition: ConditionChar, out: Edge},
-    Split{c1: ConditionChar, out1: Edge, c2: ConditionChar, out2: Edge}
-}
-
-#[derive(PartialEq,Debug,Clone,Eq,Hash)]
 pub enum ConditionChar {
     One(u8), // ascii encoded char
     Class(Vec<u8>), // list of valid ascii encoded chars
@@ -39,6 +33,7 @@ impl ConditionChar {
     }
 }
 
+
 #[derive(PartialEq,Debug,Clone,Eq,Hash)]
 pub enum Edge {
     Id(usize),
@@ -46,15 +41,20 @@ pub enum Edge {
     End
 }
 
+
+#[derive(PartialEq,Debug,Clone,Eq,Hash)]
+pub enum State {
+    State{condition: ConditionChar, out: Edge},
+    Split{out1: Edge, out2: Edge}
+}
+
 impl State {
     pub fn state(condition: ConditionChar, out: Edge) -> State {
         State::State{condition: condition, out: out}
     }
 
-    pub fn split(c1: ConditionChar, out1: Edge, c2: ConditionChar, out2: Edge) -> State {
-        State::Split{c1: c1,
-                     out1: out1,
-                     c2: c2,
+    pub fn split(out1: Edge, out2: Edge) -> State {
+        State::Split{out1: out1,
                      out2: out2}
     }
 
@@ -65,10 +65,10 @@ impl State {
             &State::State{ref condition, ref out} => {
                 Self::get_transition_priority_key(condition, out, nfa)
             },
-            &State::Split{ref c1, ref out1, ref c2, ref out2} => {
+            &State::Split{ref out1, ref out2} => {
                 cmp::min(
-                    Self::get_transition_priority_key(c1, out1, nfa),
-                    Self::get_transition_priority_key(c2, out2, nfa))
+                    Self::get_transition_priority_key(&ConditionChar::None, out1, nfa),
+                    Self::get_transition_priority_key(&ConditionChar::None, out2, nfa))
             }
         }
     }
@@ -173,14 +173,14 @@ impl NFA {
             },
             &Expr::Optional(ref expr) => {
                 let expr_id = self.build_expr(expr);
-                let s = State::split(ConditionChar::None, Edge::Id(expr_id), ConditionChar::None, Edge::Detached);
+                let s = State::split(Edge::Id(expr_id), Edge::Detached);
                 self.states.push(s);
 
                 self.states.len() - 1
             },
             &Expr::OneOrMore(ref expr) => {
                 let expr_id = self.build_expr(expr);
-                let s = State::split(ConditionChar::None, Edge::Id(expr_id), ConditionChar::None, Edge::Detached);
+                let s = State::split(Edge::Id(expr_id), Edge::Detached);
 
                 self.states.push(s);
                 let split_id = self.states.len() - 1;
@@ -190,7 +190,7 @@ impl NFA {
             },
             &Expr::ZeroOrMore(ref expr) => {
                 let expr_id = self.build_expr(expr);
-                let s = State::split(ConditionChar::None, Edge::Id(expr_id), ConditionChar::None, Edge::Detached);
+                let s = State::split(Edge::Id(expr_id), Edge::Detached);
 
                 self.states.push(s);
                 let split_id = self.states.len() - 1;
@@ -202,9 +202,7 @@ impl NFA {
                 let expr1_id = self.build_expr(expr1);
                 let expr2_id = self.build_expr(expr2);
 
-                let s = State::split(ConditionChar::None, 
-                                     Edge::Id(expr1_id),
-                                     ConditionChar::None, 
+                let s = State::split(Edge::Id(expr1_id),
                                      Edge::Id(expr2_id));
 
                 self.states.push(s);
@@ -228,13 +226,11 @@ impl NFA {
                              self.replace_edge(out.clone(), new_edge, visited)
 )
             },
-            State::Split{ref c1, ref out1, ref c2, ref out2} => {
+            State::Split{ref out1, ref out2} => {
                 let edge1 = self.replace_edge(out1.clone(), new_edge.clone(), visited);
                 let edge2 = self.replace_edge(out2.clone(), new_edge.clone(), visited);
 
-                State::split(c1.clone(),
-                             edge1,
-                             c2.clone(),
+                State::split(edge1,
                              edge2)
             }
         };
