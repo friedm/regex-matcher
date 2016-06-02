@@ -19,11 +19,7 @@ impl Condition {
     }
 
     fn to_ascii(c: char) -> u8 {
-        let mut buf = [0; 1];
-        match c.encode_utf8(&mut buf) {
-            Some(1) => buf[0],
-            _ => panic!("attempted to create condition with non-ascii char")
-        }
+        c.encode_utf8().as_slice()[0]
     }
 
     pub fn class(chars: Vec<char>) -> Condition {
