@@ -1,5 +1,7 @@
 # Regex Matcher
 
+[![Build Status](https://travis-ci.org/friedm/regex-matcher.svg?branch=master)](https://travis-ci.org/friedm/regex-matcher)
+
 A WIP Thompson NFA regular expression matcher in Rust.  
 
 ### References
