@@ -19,7 +19,7 @@ impl Condition {
     }
 
     fn to_ascii(c: char) -> u8 {
-        c.encode_utf8().as_slice()[0]
+        c as u8
     }
 
     pub fn class(chars: Vec<char>) -> Condition {
